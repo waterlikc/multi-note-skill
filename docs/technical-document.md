@@ -87,7 +87,7 @@
 
 ### 2.2 模块设计
 
-#### 核心模块（22个）
+#### 核心模块（23个）
 
 | 模块 | 文件 | 功能 | 依赖 |
 |------|------|------|------|
@@ -147,11 +147,13 @@
 
 | 测试文件 | 测试内容 | 测试用例数 |
 |----------|----------|------------|
-| `test-smart-note-generator.js` | 主控制器功能 | 15 |
-| `test-incremental-update.js` | 增量更新功能 | 12 |
-| `test-knowledge-graph.js` | 知识图谱功能 | 18 |
-| `test-error-handler.js` | 错误处理功能 | 14 |
-| **总计** | - | **59** |
+| `test-smart-note-generator.js` | 主控制器/学科/复杂度/知识点/结构 | 20 |
+| `test-incremental-update.js` | 笔记解析/对比/合并/版本 | 17 |
+| `test-knowledge-graph.js` | 知识图谱/学习路径/薄弱点 | 16 |
+| `test-error-handler.js` | 错误处理/输入验证 | 14 |
+| **总计** | - | **67** |
+
+> 运行方式：`npm test`（已在 Node v24 实测全部通过）。测试文件位于项目根目录，`tests/` 目录存放辅助测试材料。
 
 #### 测试覆盖
 
@@ -362,8 +364,9 @@ multi-note-skill/
 ├── SKILL.md                          # 技能配置
 ├── README.md                         # 项目说明
 ├── package.json                      # 依赖配置
-├── core/                             # 核心模块（22个）
+├── core/                             # 核心模块（23个）
 │   ├── smart-note-generator.js       # 主控制器
+│   ├── export-manager.js             # 统一导出管理器（Style A/B/C）
 │   ├── multimodal-processor.js       # 多模态处理器
 │   ├── subject-detector.js           # 学科识别器
 │   ├── complexity-analyzer.js        # 复杂度分析器
@@ -394,14 +397,13 @@ multi-note-skill/
 │   ├── animation.md                  # 动画规则
 │   ├── faq.md                        # 常见问题
 │   └── ...                           # 其他参考
-├── tests/                            # 测试用例
-│   ├── test-smart-note-generator.js
-│   ├── test-incremental-update.js
-│   ├── test-knowledge-graph.js
-│   └── test-error-handler.js
+├── tests/                            # 辅助测试材料
+│   └── harness-test.md               # 手工验收清单
+├── test-*.js                         # 根目录测试套件（npm test 使用）
 └── assets/                           # 资源文件
     ├── template-a.html               # Style A模板
     ├── template-b.html               # Style B模板
+    ├── template-c.html               # Style C模板
     └── styles.css                    # 公共样式
 ```
 

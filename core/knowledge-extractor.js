@@ -160,7 +160,7 @@ export class KnowledgeExtractor {
         let match
         
         while ((match = regex.exec(content)) !== null) {
-          const text = match[1] || match[0]
+          const text = (match[2] && match[2].trim()) || match[1] || match[0]
           const cleanedText = this.cleanText(text)
           
           // 去重

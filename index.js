@@ -141,7 +141,7 @@ export async function generateNote(input = {}, options = {}) {
 
     // style recommendation
     const recommended = templateManager.getRecommendedTemplate(scene)
-    const chosenStyle = finalStyle || recommended.name ? recommended.name : recommended.template
+    const chosenStyle = finalStyle || recommended.id || 'style-a'
 
     const noteData = {
         title: title === 'Untitled' && multimodalMetadata ? 
@@ -449,7 +449,7 @@ export function getSceneDetectorStats() {
 export function getSkillInfo() {
     return {
         name: 'multi-note-skill',
-        version: '1.2.0',
+        version: '2.0.0',
         description: 'Multi-scene note generation skill with multimodal support',
         entry: 'index.js',
         // 🆕 新增功能列表

@@ -39,6 +39,9 @@ export class OptimizedExportManager {
     
     // 🔧 优化3: 集成性能监控
     this.performanceMonitor = new PerformanceMonitor()
+
+    // 🔧 优化3.1: 复用统一导出管理器（保证 Style A/B/C 渲染一致）
+    this.htmlExporter = new ExportManager()
     
     // 原有的导出格式配置
     this.exportFormats = {
@@ -171,7 +174,7 @@ export class OptimizedExportManager {
   }
 
   // 🔧 优化11: 批量导出 - 避免重复计算
-  exportBatch(noteDataList, formats = ['json', 'markdown', 'html']) {
+  async exportBatch(noteDataList, formats = ['json', 'markdown', 'html']) {
     const batchStartTime = performance.now()
     const results = {}
 
@@ -238,29 +241,11 @@ export class OptimizedExportManager {
 
   // 其他导出方法保持不变...
   async exportToPdf(noteData, htmlContent) {
-    return new Promise((resolve, reject) => {
-      try {
-        const options = {
-          margin: 10,
-          filename: `${noteData.title}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }
-
-        resolve({ 
-          success: true, 
-          message: 'PDF导出需要浏览器环境支持',
-          options 
-        })
-      } catch (error) {
-        reject(new Error('PDF导出失败: ' + error.message))
-      }
-    })
+    return this.htmlExporter.exportToPdf(noteData, htmlContent)
   }
 
   exportToHtml(noteData) {
-    return noteData.content
+    return this.htmlExporter.exportToHtml(noteData)
   }
 
   // 🔧 工具方法：估算内存使用
@@ -395,6 +380,9 @@ export class SmartNoteGenerator {
       maxCacheSize: 100,
       cacheWarmupContents: this.getDefaultWarmupContents()
     }
+
+    // 对外暴露统一配置（测试与调用方常用入口）
+    this.config = { ...options }
   }
 
   // 🔧 优化20: 系统初始化
@@ -453,7 +441,7 @@ export class SmartNoteGenerator {
         subtitle: input.subtitle || this.generateSubtitle(scene),
         date: input.date || new Date().toISOString().split('T')[0],
         scene: scene,
-        style: template.name === '学霸笔记本' ? 'style-a' : 'style-b',
+        style: template.id || (template.name === '学霸笔记本' ? 'style-a' : 'style-b'),
         content: processedContent,
         // 🆕 多模态元数据
         multimodal: multimodalMetadata ? {
@@ -529,6 +517,54 @@ export class SmartNoteGenerator {
         error: error.message,
         duration: errorDuration.toFixed(2) + 'ms'
       }
+    }
+  }
+
+  // 统一生成入口（兼容 string / object 输入）
+  async generate(input, options = {}) {
+    const base = typeof input === 'string' ? { content: input } : { ...input }
+    const normalizedInput = {
+      ...base,
+      title: base.title || options.title,
+      subtitle: base.subtitle || options.subtitle,
+      date: base.date || options.date,
+      scene: base.scene || options.scene,
+      style: base.style || options.style
+    }
+
+    const result = await this.generateSmartNote(normalizedInput, options)
+    if (!result.success) return result
+
+    const content = normalizedInput.content || ''
+    const subjectResult = this.subjectDetector.detect(content)
+    const complexityResult = this.complexityAnalyzer.analyze(content)
+
+    return {
+      success: true,
+      note: {
+        ...result.noteData,
+        title: result.noteData.title,
+        exports: result.exports
+      },
+      exports: result.exports,
+      metadata: {
+        ...result.metadata,
+        subject: subjectResult.subject,
+        subjectName: subjectResult.subjectName,
+        complexity: complexityResult.score,
+        complexityLevel: complexityResult.level
+      }
+    }
+  }
+
+  // 统计信息（测试与监控入口）
+  getStats() {
+    return {
+      cacheSize: (this.sceneDetector.cache?.size || 0) + (this.exportManager.contentAnalyzer?.analysisCache?.size || 0),
+      sceneCacheHits: this.sceneDetector.cacheHits || 0,
+      sceneCacheMisses: this.sceneDetector.cacheMisses || 0,
+      knowledgePoints: this.knowledgeGraph?.nodes?.size || 0,
+      supportedFormats: this.exportManager.getSupportedFormats?.() || []
     }
   }
 

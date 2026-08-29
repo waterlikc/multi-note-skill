@@ -72,7 +72,7 @@ async function generatePDF(htmlPath, outputPath) {
   const page = await browser.newPage();
   
   await page.goto(`file://${path.resolve(htmlPath)}`, {
-    waitUntil: 'networkidle0
+    waitUntil: 'networkidle0'
   });
   
   await page.pdf({

@@ -181,9 +181,11 @@ export class LearningPath {
     // 使用BFS查找路径
     const visited = new Set()
     const queue = []
+
+    // 初始化：从已掌握的知识点开始；若无已掌握知识点，则从无前置依赖的根知识点开始
+    const startNodes = masteredNodes.length > 0 ? masteredNodes : this.getRootNodes(subject)
     
-    // 初始化：从已掌握的知识点开始
-    for (const node of masteredNodes) {
+    for (const node of startNodes) {
       queue.push({
         current: node.id,
         path: [node.id],
@@ -256,6 +258,28 @@ export class LearningPath {
     }
 
     return neighbors
+  }
+
+  /**
+   * 获取指定学科中无前置依赖的根知识点
+   */
+  getRootNodes(subject) {
+    if (!this.knowledgeGraph) {
+      return []
+    }
+
+    const allNodes = Array.from(this.knowledgeGraph.nodes.values())
+    const incoming = new Set()
+
+    for (const edges of this.knowledgeGraph.edges.values()) {
+      for (const edge of edges) {
+        if (edge.type === 'prerequisite') {
+          incoming.add(edge.to)
+        }
+      }
+    }
+
+    return allNodes.filter(node => (!subject || node.subject === subject) && !incoming.has(node.id))
   }
 
   /**

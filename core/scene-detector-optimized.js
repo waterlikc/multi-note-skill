@@ -20,7 +20,7 @@ export class SceneDetector {
       },
       meeting: {
         keywords: ['会议', '议程', '决议', '行动项', '讨论', '决定', '下一步', '负责人', '截止日期'],
-        patterns: [/^\d+\./gm, /[-*]\s.*$/gm, /\[.*?\]/g],
+        patterns: [/\[.*?\]/g],
         style: 'meeting'
       }
     }

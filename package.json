@@ -1,12 +1,13 @@
 {
     "name": "multi-note-skill",
-    "version": "1.1.0",
+    "version": "2.0.0",
     "type": "module",
     "description": "Multi-scene note generation skill with multimodal support",
     "license": "MIT",
     "scripts": {
         "build:skill": "node build-skill.js",
-        "test:multimodal": "node --experimental-vm-modules tests/multimodal-test.js"
+        "test": "node test-smart-note-generator.js && node test-incremental-update.js && node test-knowledge-graph.js && node test-error-handler.js",
+        "test:multimodal": "node test-note-generation.js && node test-bilibili-note.js && node test-image-note.js"
     },
     "keywords": [
         "note-generation",

@@ -6,7 +6,7 @@
 
 | 评分项 | 分值 | skill能力 | 实现方式 |
 |--------|------|-----------|----------|
-| 场景识别创新 | 10 | 智能场景识别 | 自动识别6种笔记场景 |
+| 场景识别创新 | 10 | 智能场景识别 | 自动识别7种主场景+多模态输入 |
 | 组件创新 | 8 | 28种专用组件 | 流程图/对比框/步骤列表等 |
 | 交互创新 | 7 | Style B翻页 | 皮革手账本翻页交互 |
 
@@ -19,7 +19,7 @@
 
 | 评分项 | 分值 | skill能力 | 实现方式 |
 |--------|------|-----------|----------|
-| 多场景覆盖 | 10 | 6种场景支持 | 技术/课堂/科普/会议/调研/小说 |
+| 多场景覆盖 | 10 | 7种主场景+多模态 | 技术/课堂/科普/读书/会议/调研/项目 |
 | 输出质量 | 8 | 精美HTML笔记 | 手写体/动画/装饰元素 |
 | 易用性 | 7 | 自动化流程 | 一键生成，无需手动调整 |
 
@@ -120,7 +120,7 @@ multi-note-skill的核心价值：
 
 ### Q1: 与其他笔记生成工具相比，你的优势是什么？
 **A**: 
-1. 场景识别：自动识别6种场景，无需手动选择
+1. 场景识别：自动识别7种主场景+多模态输入，无需手动选择
 2. Context Engineering：一次性生成成功，减少返工
 3. 质量保证：完整的P0/P1/P2检查清单
 4. 视觉效果：手写体/皮革本/动画，提升阅读体验
@@ -151,24 +151,29 @@ multi-note-skill的核心价值：
 ## 比赛作品提交清单
 
 ### 必交材料
-- [ ] SKILL.md（技能定义文件）
-- [ ] README.md（项目说明）
-- [ ] assets/template-a.html（Style A模板）
-- [ ] assets/template-b.html（Style B模板）
-- [ ] assets/styles.css（公共样式表）
-- [ ] references/layouts.md（布局库）
-- [ ] references/components.md（组件手册）
-- [ ] references/checklist.md（质量检查清单）
+- [x] SKILL.md（技能定义文件，v2.0.0）
+- [x] README.md（项目说明）
+- [x] assets/template-a.html（Style A模板）
+- [x] assets/template-b.html（Style B模板，已接入翻页渲染）
+- [x] assets/template-c.html（Style C模板，已接入渲染）
+- [x] assets/styles.css（公共样式表）
+- [x] references/layouts.md（布局库）
+- [x] references/components.md（组件手册）
+- [x] references/checklist.md（质量检查清单）
+- [x] 技术文档（PDF + Markdown，见 docs/technical-document.md）
 
 ### 推荐材料
-- [ ] tests/harness-test.md（测试脚本）
-- [ ] examples/（示例文件）
-- [ ] docs/COMPETITION.md（比赛文档）
+- [x] 根目录 test-*.js + tests/harness-test.md（测试脚本，npm test 一键运行）
+- [x] examples/（示例文件）
+- [x] docs/COMPETITION.md（比赛文档）
+- [x] demo/（演示脚本，demo/run-all.js）
 - [ ] 演示视频（3-5分钟）
 - [ ] 演示PPT
 
 ### 加分材料
-- [ ] 自动化测试脚本
-- [ ] JSON元数据导出
-- [ ] 多格式导出功能
-- [ ] 响应式适配证明
+- [x] 自动化测试脚本（67 项用例通过）
+- [x] JSON元数据导出
+- [x] 多格式导出功能（HTML/Markdown/JSON/浏览器打印PDF）
+- [x] 响应式适配（Style C 响应式布局）
+- [x] 知识图谱/学习路径/薄弱点识别
+- [x] 增量更新/版本管理

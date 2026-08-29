@@ -138,65 +138,79 @@ export class ExportManager {
     }
   }
 
-  // 导出为PDF格式 (需要html2pdf.js库)
+  // 导出为PDF格式（轻量方案：浏览器打印导出）
   async exportToPdf(noteData, htmlContent) {
     return new Promise((resolve, reject) => {
       try {
-        // 这里需要集成html2pdf.js库
-        // 由于是客户端导出，需要浏览器环境
         const options = {
-          margin: 10,
           filename: `${noteData.title}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          pageSize: 'A4',
+          orientation: 'portrait',
+          printBackground: true
         }
-        
-        // 模拟PDF导出 - 实际使用时需要html2pdf.js
-        resolve({ 
-          success: true, 
-          message: 'PDF导出需要浏览器环境支持',
-          options 
+
+        resolve({
+          success: true,
+          method: 'browser-print',
+          message: '请用浏览器打开生成的HTML文件，按 Ctrl+P（macOS: Cmd+P）选择“另存为PDF”',
+          filename: options.filename,
+          options
         })
-        
       } catch (error) {
         reject(new Error('PDF导出失败: ' + error.message))
       }
     })
   }
 
-  // 导出为HTML格式 - 使用学霸笔记模板（优化版）
+  // 根据 noteData.style 选择模板文件
+  selectTemplateFile(style) {
+    const mapping = {
+      'style-a': 'template-a.html',
+      'style-b': 'template-b.html',
+      'style-c': 'template-c.html'
+    }
+    return mapping[style] || 'template-a.html'
+  }
+
+  // 场景标签映射（供各模板复用）
+  getSceneLabel(scene) {
+    const map = {
+      tech: '技术学习',
+      course: '课堂学习',
+      science: '科普知识',
+      reading: '读书笔记',
+      meeting: '会议纪要',
+      research: '调研分析',
+      project: '项目报告',
+      outline: '课程大纲',
+      creative: '创意写作',
+      life: '生活记录',
+      // 兼容旧版本
+      technical: '技术学习',
+      classroom: '课堂学习'
+    }
+    return map[scene] || ''
+  }
+
+  // 导出为HTML格式 - 按样式分发
   exportToHtml(noteData) {
+    const style = noteData.style || 'style-a'
+    if (style === 'style-b') return this.exportToStyleB(noteData)
+    if (style === 'style-c') return this.exportToStyleC(noteData)
+    return this.exportToStyleA(noteData)
+  }
+
+  // Style A - 学霸笔记本（原有占位符替换渲染）
+  exportToStyleA(noteData) {
     try {
-      // 🔧 优化: 使用预加载的模板
       let template = this.templates['template-a.html']
-      
       if (!template) {
         throw new Error('模板加载失败，请检查 assets/template-a.html 文件')
       }
-      
-      // 将Markdown内容转换为笔记本样式的HTML
+
       const notebookContent = this.markdownToNotebookHtml(noteData.content)
-      
-      // 场景标签映射
-      const sceneLabels = {
-        tech: '技术学习',
-        course: '课堂学习',
-        science: '科普知识',
-        reading: '读书笔记',
-        meeting: '会议纪要',
-        research: '调研分析',
-        project: '项目报告',
-        outline: '课程大纲',
-        creative: '创意写作',
-        life: '生活记录',
-        // 兼容旧版本
-        technical: '技术学习',
-        classroom: '课堂学习'
-      }
-      
-      const sceneLabel = sceneLabels[noteData.scene] || ''
-      const subtitleText = noteData.subtitle 
+      const sceneLabel = this.getSceneLabel(noteData.scene)
+      const subtitleText = noteData.subtitle
         ? `${noteData.subtitle} | ${noteData.date}`
         : noteData.date
 
@@ -237,11 +251,517 @@ ${notebookContent}
         '<title>[必填] 替换为笔记标题</title>',
         `<title>${this.escapeHtml(noteData.title)}</title>`
       )
-      
+
       return template
     } catch (error) {
       throw new Error('HTML导出失败: ' + error.message)
     }
+  }
+
+  // Style B - 手账皮革本（封面 + 分页翻页）
+  exportToStyleB(noteData) {
+    const template = this.templates['template-b.html']
+    if (!template) {
+      throw new Error('模板加载失败，请检查 assets/template-b.html 文件')
+    }
+
+    const headHtml = template
+      .slice(0, template.indexOf('</head>') + 7)
+      .replace(/<title>[\s\S]*?<\/title>/, `<title>${this.escapeHtml(noteData.title)}</title>`)
+
+    const sections = this.splitMarkdownSections(noteData.content)
+    const pagesHtml = sections.map((section, index) => {
+      const pageNumber = index + 1
+      const bodyHtml = this.buildStyleBPageBody(section.lines)
+      return `            <div class="page" data-page="${pageNumber}">
+                <div class="content-wrapper">
+                    <div class="page-header">${this.escapeHtml(section.title)}</div>
+${bodyHtml}
+                </div>
+                <div class="page-number">${pageNumber}</div>
+            </div>`
+    }).join('\n')
+
+    const subtitle = noteData.subtitle || noteData.date || ''
+    const coverHtml = `            <div class="page cover active" data-page="0">
+                <div class="cover-decoration"><i class="ri-book-open-line"></i></div>
+                <div class="cover-title">${this.escapeHtml(noteData.title)}</div>
+                <div class="cover-subtitle">${this.escapeHtml(subtitle)}</div>
+                <div class="cover-hint">点击翻页开始阅读 ↓</div>
+            </div>`
+
+    const ringsHtml = Array.from({ length: 8 }, () => '<div class="ring"></div>').join('\n            ')
+
+    const script = `
+        let currentPage = 0;
+        const pages = document.querySelectorAll('.page');
+        function showPage(n) {
+          pages.forEach(function (p, i) {
+            p.classList.remove('active', 'flipped');
+            if (i < n) p.classList.add('flipped');
+            else if (i === n) p.classList.add('active');
+          });
+          currentPage = n;
+        }
+        function nextPage() { if (currentPage < pages.length - 1) showPage(currentPage + 1); }
+        function prevPage() { if (currentPage > 0) showPage(currentPage - 1); }
+        const cover = document.querySelector('.page.cover');
+        if (cover) cover.addEventListener('click', nextPage);
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'ArrowRight' || e.key === ' ') nextPage();
+          else if (e.key === 'ArrowLeft') prevPage();
+        });
+        showPage(0);
+    `
+
+    return `${headHtml}
+<body>
+    <div class="notebook">
+        <div class="rings">
+            ${ringsHtml}
+        </div>
+
+        <div class="pages-container" id="pagesContainer">
+${coverHtml}
+${pagesHtml}
+        </div>
+    </div>
+
+    <script>${script}</script>
+</body>
+</html>`
+  }
+
+  // Style C - 简约现代（渐变头部 + 卡片内容）
+  exportToStyleC(noteData) {
+    const template = this.templates['template-c.html']
+    if (!template) {
+      throw new Error('模板加载失败，请检查 assets/template-c.html 文件')
+    }
+
+    const headHtml = template
+      .slice(0, template.indexOf('</head>') + 7)
+      .replace(/<title>[\s\S]*?<\/title>/, `<title>${this.escapeHtml(noteData.title)}</title>`)
+
+    const sceneLabel = this.getSceneLabel(noteData.scene) || '学习笔记'
+    const sections = this.splitMarkdownSections(noteData.content)
+    const sectionsHtml = sections.map((section, index) => {
+      const delay = (0.1 + index * 0.1).toFixed(1)
+      const bodyHtml = this.buildStyleCBody(section.lines)
+      return `            <div class="section fade-in" style="animation-delay:${delay}s">
+                <div class="section-header">
+                    <div class="section-icon"><i class="lucide-book-open"></i></div>
+                    <h2 class="section-title">${this.escapeHtml(section.title)}</h2>
+                </div>
+${bodyHtml}
+            </div>`
+    }).join('\n')
+
+    const headerHtml = `        <div class="header">
+            <div class="header-tag">${this.escapeHtml(sceneLabel)}</div>
+            <h1 class="header-title">${this.escapeHtml(noteData.title)}</h1>
+            <p class="header-subtitle">${this.escapeHtml(noteData.subtitle || '')}</p>
+            <div class="header-meta">
+                <span><i class="lucide-calendar"></i> ${this.escapeHtml(noteData.date || '')}</span>
+                <span><i class="lucide-user"></i> multi-note-skill</span>
+                <span><i class="lucide-tag"></i> ${this.escapeHtml(sceneLabel)}</span>
+            </div>
+        </div>`
+
+    const footerHtml = `        <div class="footer">
+            multi-note-skill · Style C 简约现代模板 · ${new Date().getFullYear()}
+        </div>`
+
+    return `${headHtml}
+<body>
+    <div class="container">
+        <div class="notebook">
+${headerHtml}
+
+            <div class="content">
+${sectionsHtml}
+            </div>
+
+${footerHtml}
+        </div>
+    </div>
+</body>
+</html>`
+  }
+
+  // 将Markdown按标题分节
+  splitMarkdownSections(markdown) {
+    const lines = String(markdown || '').split('\n')
+    const sections = []
+    let current = null
+    let pending = []
+    let docTitleSeen = false
+    let inCodeFence = false
+
+    const flushPending = () => {
+      if (pending.some(line => line.trim())) {
+        sections.push({ title: '概览', lines: pending })
+      }
+      pending = []
+    }
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+
+      // 代码围栏内的内容不解析标题/表格，避免 `# 安装` 之类被误当成章节
+      if (trimmed.startsWith('```')) {
+        inCodeFence = !inCodeFence
+        if (current) current.lines.push(line)
+        else pending.push(line)
+        continue
+      }
+      if (inCodeFence) {
+        if (current) current.lines.push(line)
+        else pending.push(line)
+        continue
+      }
+
+      const heading = trimmed.match(/^(#{1,3})\s+(.*)$/)
+      if (heading) {
+        const level = heading[1].length
+        const title = heading[2].trim()
+        // 首个一级标题视为文档主标题，不单独成一个空泛章节页；
+        // 其正文作为引言并入第一个正式章节，避免 Style B/C 第一页过于稀疏。
+        if (level === 1 && !docTitleSeen && !current) {
+          docTitleSeen = true
+          continue
+        }
+        if (current) sections.push(current)
+        current = { title, lines: [] }
+        if (pending.some(l => l.trim())) {
+          current.lines = pending.slice()
+          pending = []
+        }
+      } else if (current) {
+        current.lines.push(line)
+      } else {
+        pending.push(line)
+      }
+    }
+
+    if (current) sections.push(current)
+    else flushPending()
+
+    for (const section of sections) {
+      while (section.lines.length && !section.lines[section.lines.length - 1].trim()) {
+        section.lines.pop()
+      }
+    }
+
+    return sections.filter(section => section.lines.some(line => line.trim()))
+  }
+
+  // 解析 Markdown 表格块（含表头/分隔行）为 HTML <table>
+  parseMarkdownTable(blockLines) {
+    const rows = []
+    for (const raw of blockLines) {
+      const line = raw.trim()
+      if (!line.includes('|')) break
+      const cells = line
+        .replace(/^\s*\|/, '')
+        .replace(/\|\s*$/, '')
+        .split('|')
+        .map(c => c.trim())
+      const isSeparator = cells.length > 0 && cells.every(c => /^:?-{2,}:?$/.test(c))
+      if (isSeparator) continue
+      rows.push(cells)
+    }
+    if (rows.length === 0) return null
+
+    const colCount = Math.max(...rows.map(r => r.length))
+    const header = rows[0]
+    const body = rows.slice(1)
+
+    const headRow = `<tr>${Array.from({ length: colCount }, (_, i) => `<th>${this.inlineMarkdownPlain(header[i] || '')}</th>`).join('')}</tr>`
+    const bodyRows = body.map(r => `<tr>${Array.from({ length: colCount }, (_, i) => `<td>${this.inlineMarkdownPlain(r[i] || '')}</td>`).join('')}</tr>`).join('')
+
+    return { html: `<table><thead>${headRow}</thead><tbody>${bodyRows}</tbody></table>` }
+  }
+
+  // 渲染 ::: 提示框（Style B/C 也支持，与 Style A 的 processCustomBlock 对齐）
+  renderCallout(style, type, lines, label) {
+    const content = this.inlineMarkdownPlain(lines.join(' ').trim())
+    const titleMap = {
+      warning: '⚠️ 注意',
+      danger: '⚠️ 危险',
+      error: '❌ 错误',
+      tip: '💡 提示',
+      info: '📌 信息',
+      summary: '📋 总结',
+      question: '❓ 思考',
+      note: '📝 备注'
+    }
+    const title = label || titleMap[type] || '备注'
+
+    if (style === 'style-c') {
+      if (type === 'summary') {
+        return `<div class="summary"><div class="summary-title">${title}</div><div class="summary-item">${content}</div></div>`
+      }
+      return `<div class="note"><strong>${title}：</strong>${content}</div>`
+    }
+
+    // style-b
+    const cls = (type === 'warning' || type === 'danger' || type === 'error') ? 'key-point-box' : 'sticky-note'
+    return `<div class="${cls}"><div class="box-title">${title}</div><div class="box-content">${content}</div></div>`
+  }
+
+  // Style B 正文渲染
+  buildStyleBPageBody(lines) {
+    const html = []
+    let paragraph = []
+    let list = null
+    let code = null
+
+    const flushParagraph = () => {
+      if (paragraph.length) {
+        html.push(`<p class="handwriting">${this.inlineMarkdownPlain(paragraph.join(' ').trim())}</p>`)
+        paragraph = []
+      }
+    }
+
+    const flushList = () => {
+      if (list && list.items.length) {
+        const tag = list.type
+        html.push(`<${tag} class="handwriting">${list.items.map(item => `<li>${this.inlineMarkdownPlain(item)}</li>`).join('')}</${tag}>`)
+        list = null
+      }
+    }
+
+    const flushCode = () => {
+      if (code) {
+        html.push(`<div class="diagram-container"><div class="diagram-title">代码示例</div><pre style="background:#2d2d2d;color:#f8f8f2;padding:16px;border-radius:10px;overflow-x:auto;font-family:'Courier New',monospace;font-size:0.9rem">${this.escapeHtml(code.lines.join('\n'))}</pre></div>`)
+        code = null
+      }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const trimmed = line.trim()
+
+      if (trimmed.startsWith('```')) {
+        flushParagraph()
+        flushList()
+        if (code) { flushCode() } else { code = { lines: [] } }
+        continue
+      }
+
+      if (code) {
+        code.lines.push(line)
+        continue
+      }
+
+      // 表格检测
+      if (trimmed.includes('|')) {
+        flushParagraph()
+        flushList()
+        const tableLines = []
+        let j = i
+        while (j < lines.length && lines[j].trim().includes('|')) {
+          tableLines.push(lines[j])
+          j++
+        }
+        const table = this.parseMarkdownTable(tableLines)
+        if (table) {
+          html.push(`<div class="handwriting table-wrap">${table.html}</div>`)
+          i = j - 1
+          continue
+        }
+      }
+
+      // ::: 提示框
+      const calloutB = trimmed.match(/^:::(\w+)(?:\s+(.*))?$/)
+      if (calloutB) {
+        flushParagraph()
+        flushList()
+        const type = calloutB[1].toLowerCase()
+        const body = []
+        if (calloutB[2]) body.push(calloutB[2])
+        let j = i + 1
+        while (j < lines.length && !/^:::|^:::\w+/.test(lines[j].trim())) {
+          body.push(lines[j])
+          j++
+        }
+        html.push(this.renderCallout('style-b', type, body, ''))
+        i = j
+        continue
+      }
+
+      if (/^[-*+]\s+/.test(trimmed)) {
+        flushParagraph()
+        if (!list || list.type !== 'ul') { flushList(); list = { type: 'ul', items: [] } }
+        list.items.push(trimmed.replace(/^[-*+]\s+/, ''))
+        continue
+      }
+
+      if (/^\d+\.\s+/.test(trimmed)) {
+        flushParagraph()
+        if (!list || list.type !== 'ol') { flushList(); list = { type: 'ol', items: [] } }
+        list.items.push(trimmed.replace(/^\d+\.\s+/, ''))
+        continue
+      }
+
+      if (trimmed === '') {
+        flushParagraph()
+        flushList()
+        continue
+      }
+
+      const imageMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+?)(?:\s+"([^"]*)")?\)$/)
+      if (imageMatch) {
+        flushParagraph()
+        flushList()
+        html.push(`<p class="handwriting">${this.createImageTag(imageMatch[2], imageMatch[1], imageMatch[3] || imageMatch[1])}</p>`)
+        continue
+      }
+
+      list = null
+      paragraph.push(trimmed)
+    }
+
+    flushParagraph()
+    flushList()
+    flushCode()
+
+    return html.join('\n')
+  }
+
+  // Style C 正文渲染
+  buildStyleCBody(lines) {
+    const html = []
+    let paragraph = []
+    let list = null
+    let code = null
+
+    const flushParagraph = () => {
+      if (paragraph.length) {
+        html.push(`<p>${this.inlineMarkdownPlain(paragraph.join(' ').trim())}</p>`)
+        paragraph = []
+      }
+    }
+
+    const flushList = () => {
+      if (list && list.items.length) {
+        const tag = list.type
+        html.push(`<${tag}>${list.items.map(item => `<li>${this.inlineMarkdownPlain(item)}</li>`).join('')}</${tag}>`)
+        list = null
+      }
+    }
+
+    const flushCode = () => {
+      if (code) {
+        html.push(`<pre class="code-block">${this.escapeHtml(code.lines.join('\n'))}</pre>`)
+        code = null
+      }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const trimmed = line.trim()
+
+      if (trimmed.startsWith('```')) {
+        flushParagraph()
+        flushList()
+        if (code) { flushCode() } else { code = { lines: [] } }
+        continue
+      }
+
+      if (code) {
+        code.lines.push(line)
+        continue
+      }
+
+      // 表格检测
+      if (trimmed.includes('|')) {
+        flushParagraph()
+        flushList()
+        const tableLines = []
+        let j = i
+        while (j < lines.length && lines[j].trim().includes('|')) {
+          tableLines.push(lines[j])
+          j++
+        }
+        const table = this.parseMarkdownTable(tableLines)
+        if (table) {
+          html.push(`<div class="table-wrap">${table.html}</div>`)
+          i = j - 1
+          continue
+        }
+      }
+
+      // ::: 提示框
+      const calloutC = trimmed.match(/^:::(\w+)(?:\s+(.*))?$/)
+      if (calloutC) {
+        flushParagraph()
+        flushList()
+        const type = calloutC[1].toLowerCase()
+        const body = []
+        if (calloutC[2]) body.push(calloutC[2])
+        let j = i + 1
+        while (j < lines.length && !/^:::|^:::\w+/.test(lines[j].trim())) {
+          body.push(lines[j])
+          j++
+        }
+        html.push(this.renderCallout('style-c', type, body, ''))
+        i = j
+        continue
+      }
+
+      if (/^[-*+]\s+/.test(trimmed)) {
+        flushParagraph()
+        if (!list || list.type !== 'ul') { flushList(); list = { type: 'ul', items: [] } }
+        list.items.push(trimmed.replace(/^[-*+]\s+/, ''))
+        continue
+      }
+
+      if (/^\d+\.\s+/.test(trimmed)) {
+        flushParagraph()
+        if (!list || list.type !== 'ol') { flushList(); list = { type: 'ol', items: [] } }
+        list.items.push(trimmed.replace(/^\d+\.\s+/, ''))
+        continue
+      }
+
+      if (trimmed === '') {
+        flushParagraph()
+        flushList()
+        continue
+      }
+
+      const imageMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)]+?)(?:\s+"([^"]*)")?\)$/)
+      if (imageMatch) {
+        flushParagraph()
+        flushList()
+        html.push(`<p>${this.createImageTag(imageMatch[2], imageMatch[1], imageMatch[3] || imageMatch[1])}</p>`)
+        continue
+      }
+
+      list = null
+      paragraph.push(trimmed)
+    }
+
+    flushParagraph()
+    flushList()
+    flushCode()
+
+    return html.join('\n')
+  }
+
+  // 通用内联Markdown转HTML（适配Style B/C，使用通用标签）
+  inlineMarkdownPlain(text) {
+    if (!text) return ''
+    let html = text
+
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    html = html.replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+    html = html.replace(/==([^=]+)==/g, '<span class="highlight">$1</span>')
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+
+    return html
   }
 
   // 获取模板（使用预加载的模板）
@@ -571,6 +1091,30 @@ ${notebookContent}
         continue
       }
       
+      // 处理表格
+      if (trimmedLine.includes('|')) {
+        flushParagraph()
+        flushList()
+        const tableLines = []
+        let j = i
+        while (j < lines.length && lines[j].trim().includes('|')) {
+          tableLines.push(lines[j])
+          j++
+        }
+        const table = this.parseMarkdownTable(tableLines)
+        if (table) {
+          const tableHtml = `<div class="content write-in" style="animation-delay:${getDelay(animationIndex)}s"><div class="table-wrap">${table.html}</div></div>`
+          if (currentSection) {
+            currentSection.content += '\n' + tableHtml
+          } else {
+            htmlParts.push(tableHtml)
+          }
+          animationIndex++
+          i = j - 1
+          continue
+        }
+      }
+
       // 处理分割线
       if (trimmedLine.match(/^[-*_]{3,}$/)) {
         flushParagraph()

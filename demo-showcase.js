@@ -6,7 +6,7 @@ import { join } from 'path'
 const outputDir = 'D:\\blog\\notes'
 
 console.log('╔════════════════════════════════════════════════════════════╗')
-console.log('║         multi-note-skill 智能笔记生成器 v1.1.0           ║')
+console.log('║         multi-note-skill 智能笔记生成器 v2.0.0           ║')
 console.log('╚════════════════════════════════════════════════════════════╝')
 console.log()
 

@@ -7,15 +7,15 @@ export class ContentAnalyzer {
     this.cacheHits = 0
     this.cacheMisses = 0
 
-    // 预编译分析正则表达式
-    this.compiledRegexes = this.precompileAnalysisRegexes()
-
-    // 组件类型定义
+    // 组件类型定义（必须在预编译正则之前初始化）
     this.componentTypes = [
       'code-block', 'flow-box', 'compare-box', 'side-note',
       'big-warning', 'question-box', 'safe-box', 'config-box',
       'concept-cards', 'attack-chain', 'sticky-note'
     ]
+
+    // 预编译分析正则表达式
+    this.compiledRegexes = this.precompileAnalysisRegexes()
   }
 
   // 预编译所有分析正则表达式

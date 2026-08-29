@@ -11,12 +11,23 @@ const entries = [
     'SKILL.md',
     'README.md',
     'package.json',
+    'package-lock.json',
     'index.js',
     'core',
     'assets',
     'examples',
-    'references'
+    'references',
+    'docs',
+    'demo',
+    'tests'
 ]
+
+// 根目录测试文件一并打包（比赛提交与验收需要）
+for (const name of fs.readdirSync(root)) {
+    if (name.startsWith('test-') && name.endsWith('.js')) {
+        entries.push(name)
+    }
+}
 
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
 

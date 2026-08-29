@@ -659,6 +659,21 @@
             .attack-chain { flex-direction: column; }
             .chain-arrow { transform: rotate(90deg); }
         }
+            /* 表格样式 */
+            .table-wrap { margin: 12px 0; overflow-x: auto; }
+            .table-wrap table { border-collapse: collapse; width: 100%; }
+            .table-wrap th, .table-wrap td { border: 1px solid rgba(0,0,0,0.15); padding: 8px 12px; text-align: left; }
+            .table-wrap th { background: rgba(0,0,0,0.05); font-weight: 600; }
+
+            /* 便签点击翻开/合上 */
+            .sticky-note { cursor: pointer; transition: transform 0.35s ease, opacity 0.35s ease, box-shadow 0.35s ease; }
+            .sticky-note:hover { box-shadow: 5px 6px 14px rgba(0,0,0,0.25); }
+            .sticky-note.flipped {
+              transform: translate(90px, -55px) rotate(14deg) scale(0.85);
+              opacity: 0.45;
+              z-index: 4;
+            }
+            .sticky-note.flipped:hover { opacity: 0.95; }
     </style>
 </head>
 <body>
@@ -986,6 +1001,18 @@
         });
 
         showPage(0);
+    </script>
+
+    <script>
+        // 便签点击翻开/合上，避免遮挡正文
+        document.querySelectorAll('.sticky-note').forEach(function (note) {
+            note.title = '点击翻开/合上便签';
+            note.style.cursor = 'pointer';
+            note.addEventListener('click', function (e) {
+                e.stopPropagation();
+                note.classList.toggle('flipped');
+            });
+        });
     </script>
 </body>
 </html>

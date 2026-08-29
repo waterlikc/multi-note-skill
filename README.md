@@ -4,7 +4,7 @@
 
 > *多场景智能笔记生成器 - 支持图片、视频、音频、网页URL多模态输入*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-brightgreen)](SKILL.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Version: 2.0.0](https://img.shields.io/badge/Version-2.0.0-brightgreen)](SKILL.md)
 
 根据用户内容自动识别场景，支持多模态输入，生成精美HTML笔记，支持打印复习。
 
@@ -192,26 +192,28 @@ console.log(deps)
 multi-note-skill/
 ├── SKILL.md                         # 技能配置文件（含多模态说明）
 ├── README.md                        # 项目说明
-├── package.json                     # 依赖配置
+├── package.json                     # 依赖配置（scripts: test/build）
 ├── index.js                         # 公共入口（多模态API）
-├── core/
-│   ├── smart-note-generator.js      # 主控制器（集成多模态）
-│   ├── multimodal-processor.js      # 🆕 多模态处理器
+├── core/                            # 核心模块（23个）
+│   ├── smart-note-generator.js      # 主控制器（集成多模态/增量更新/知识图谱）
+│   ├── export-manager.js            # 统一导出（HTML/Markdown/JSON/PDF说明）
+│   ├── multimodal-processor.js      # 多模态处理器
 │   ├── scene-detector.js            # 场景检测器
-│   ├── content-analyzer.js          # 内容分析器
-│   ├── template-manager.js          # 模板管理器
-│   └── ...                          # 其他核心模块
-├── assets/
-│   ├── template-a.html              # Style A 模板
-│   ├── template-b.html              # Style B 模板
-│   └── template-c.html              # Style C 模板
-├── references/
-│   ├── layouts.md                   # 布局库
-│   ├── components.md                # 组件手册
-│   └── checklist.md                 # 质量检查清单
-└── examples/
-    ├── multimodal-demo.mjs          # 🆕 多模态示例
-    └── ...                          # 其他示例
+│   ├── template-manager.js          # 模板管理器（Style A/B/C）
+│   └── ...                          # 学科识别/复杂度/知识点/增量更新等
+├── assets/                          # 模板资源
+│   ├── template-a.html              # Style A 学霸笔记本
+│   ├── template-b.html              # Style B 手账皮革本
+│   ├── template-c.html              # Style C 简约现代
+│   └── styles.css                   # 公共样式
+├── references/                      # 组件/布局/质量清单
+├── docs/                            # 技术文档/比赛文档/开发规划
+├── demo/                            # 演示脚本（run-all.js）
+├── examples/                        # 示例笔记与多模态示例
+├── tests/                           # 测试辅助文件
+├── test-*.js                        # 根目录测试套件（npm test 使用）
+├── build-skill.js                   # 打包脚本
+└── dist/                            # 构建产物（multi-note-skill.zip）
 ```
 
 ---

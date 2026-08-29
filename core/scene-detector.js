@@ -32,7 +32,7 @@ export class SceneDetector {
       },
       meeting: {
         keywords: ['会议', '议程', '决议', '行动项', '讨论', '决定', '下一步', '负责人', '截止日期', '研讨', '周会', '例会', '汇报', '参会'],
-        patterns: [/^\d+\./gm, /[-*]\s.*$/gm, /\[.*?\]/g, /负责人/g, /截止日期/g],
+        patterns: [/\[.*?\]/g, /负责人/g, /截止日期/g],
         style: 'meeting',
         folder: '会议纪要',
         structure: ['议程→要点→讨论→决策→总结', '背景→内容→结论→行动→总结']

@@ -60,14 +60,14 @@ function assert(condition, message) {
 // ==================== 笔记解析器测试 ====================
 console.log(colors.cyan('\n📝 笔记解析器测试'))
 
-test('解析HTML标题', () => {
+testAsync('解析HTML标题', async () => {
   const html = '<html><head><title>测试标题</title></head><body><h1>内容</h1></body></html>'
-  const result = parseNote(html)
+  const result = await parseNote(html)
   assert(result.success, '应该成功解析')
   assert(result.title === '测试标题', `期望 测试标题，实际 ${result.title}`)
 })
 
-test('解析HTML章节', () => {
+testAsync('解析HTML章节', async () => {
   const html = `
     <html>
       <body>
@@ -82,12 +82,12 @@ test('解析HTML章节', () => {
       </body>
     </html>
   `
-  const result = parseNote(html)
+  const result = await parseNote(html)
   assert(result.success, '应该成功解析')
   assert(result.sections.length === 2, `期望 2 个章节，实际 ${result.sections.length}`)
 })
 
-test('解析代码块', () => {
+testAsync('解析代码块', async () => {
   const html = `
     <html>
       <body>
@@ -98,13 +98,13 @@ def hello():
       </body>
     </html>
   `
-  const result = parseNote(html)
+  const result = await parseNote(html)
   assert(result.success, '应该成功解析')
   assert(result.codeBlocks.length === 1, `期望 1 个代码块，实际 ${result.codeBlocks.length}`)
   assert(result.codeBlocks[0].language === 'python', `期望 python，实际 ${result.codeBlocks[0].language}`)
 })
 
-test('解析知识点', () => {
+testAsync('解析知识点', async () => {
   const html = `
     <html>
       <body>
@@ -113,7 +113,7 @@ test('解析知识点', () => {
       </body>
     </html>
   `
-  const result = parseNote(html)
+  const result = await parseNote(html)
   assert(result.success, '应该成功解析')
   assert(result.knowledgePoints.length >= 2, `期望 >= 2 个知识点，实际 ${result.knowledgePoints.length}`)
 })
