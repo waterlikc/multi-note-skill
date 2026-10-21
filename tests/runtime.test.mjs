@@ -139,13 +139,14 @@ test('三个主题的文字色与背景满足基本对比度', () => {
   }
 });
 test('主文件小于5KB且说明书加一种模板小于27KB', async () => {
-  const main = (await readFile(new URL('SKILL.md',root))).length;
+  const bytes = async rel => Buffer.byteLength((await readFile(new URL(rel, root), 'utf8')).replace(/\r\n/g, '\n'), 'utf8');
+  const main = await bytes('SKILL.md');
   assert.ok(main < 5000, `主文件 ${main} 字节`);
   let refs = 0;
-  for (const name of await readdir(new URL('references/',root))) refs += (await readFile(new URL(`references/${name}`,root))).length;
+  for (const name of await readdir(new URL('references/',root))) refs += await bytes(`references/${name}`);
   assert.ok(refs < 12000, `参考合计 ${refs} 字节`);
   for (const style of ['a','b','c']) {
-    const tpl = (await readFile(new URL(`assets/template-${style}.html`,root))).length;
+    const tpl = await bytes(`assets/template-${style}.html`);
     assert.ok(main + refs + tpl < 27000, `${style}: ${main + refs + tpl} 字节`);
   }
 });
