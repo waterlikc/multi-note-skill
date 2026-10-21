@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "id": "math",
+  "revision": 1,
+  "title": "一次函数：读懂斜率与截距",
+  "scene": "course",
+  "style": "style-a",
+  "summary": "先看变化率，再看起点；把公式、图像和实际含义对应起来。",
+  "sources": [
+    {
+      "id": "S1",
+      "label": "教学演示材料（人工编写），第1段",
+      "text": "一次函数 y=kx+b，k≠0。k 是斜率，b 是直线与 y 轴交点的纵坐标。当 k>0 时，y 随 x 增大而增大；k<0 时则减小。例：y=2x+1，x 从1增加到3，y 从3增加到7。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "concept",
+      "heading": "斜率与截距",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "符号",
+            "含义",
+            "读图方法"
+          ],
+          "rows": [
+            [
+              "k",
+              "Δy/Δx（Δx≠0）",
+              "横坐标增加1时纵坐标的变化量"
+            ],
+            [
+              "b",
+              "y 轴截距",
+              "令 x=0，得到 y=b"
+            ]
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "一次函数要求 k≠0；“截距”是带符号的数，不等于距离。"
+        }
+      ],
+      "origin": "source",
+      "sourceIds": [
+        "S1"
+      ]
+    },
+    {
+      "id": "example",
+      "heading": "例题：y=2x+1",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "当 x=1，y=3；当 x=3，y=7。",
+            "Δx=2，Δy=4，所以 k=4/2=2。",
+            "当 x=0，y=1，所以 b=1。"
+          ]
+        }
+      ],
+      "origin": "source",
+      "sourceIds": [
+        "S1"
+      ]
+    },
+    {
+      "id": "quiz",
+      "heading": "自测与答案",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "对于 y=−3x+2，判断随 x 增大时 y 如何变化，并求 y 轴截距。"
+        },
+        {
+          "type": "paragraph",
+          "text": "答案：y 减小；y 轴截距是2。理由：k=−3<0，b=2。"
+        }
+      ],
+      "origin": "supplement",
+      "sourceIds": []
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+﻿front,back,tags,source
+能说明斜率与截距的含义,能解释 k 的符号与增减性；能说出 b 是 y 轴截距而不是距离,objective,obj-slope
+能由两点求出斜率并写出表达式,能写出 k=(y2−y1)/(x2−x1)；能说明 x1=x2 时不能求有限斜率,objective,obj-calc
+能独立完成自测并说明理由,能判断 k<0 时 y 随 x 减小；能由 k、b 反推图像走势,objective,obj-self
+斜率与截距,一次函数要求 k≠0；“截距”是带符号的数，不等于距离。,course,S1
+自测与答案,对于 y=−3x+2，判断随 x 增大时 y 如何变化，并求 y 轴截距。,course,补充解释

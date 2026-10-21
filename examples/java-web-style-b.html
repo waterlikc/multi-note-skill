@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spring Boot 3 订单接口：从 Controller 到 SQL</title><style>:root{--ink:#12324a;--paper:#f6f9fa;--line:#b7d2dc;--accent:#0e7c8a;--mono:Consolas,"Courier New",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:#e4ebef;color:var(--ink);font:16px/1.8 "Segoe UI","Microsoft YaHei",sans-serif;background-image:repeating-linear-gradient(0deg,transparent 0 23px,rgba(18,50,74,.05) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,rgba(18,50,74,.05) 23px 24px)}
+main{max-width:900px;margin:36px auto;padding:44px 52px 34px;background:var(--paper);border:1px solid var(--line);position:relative}
+main:before{content:"";position:absolute;left:-1px;top:-1px;width:18px;height:18px;border-left:3px solid var(--accent);border-top:3px solid var(--accent)}
+main:after{content:"";position:absolute;right:-1px;bottom:-1px;width:18px;height:18px;border-right:3px solid var(--accent);border-bottom:3px solid var(--accent)}
+header{padding-bottom:16px;border-bottom:2px solid var(--ink);position:relative}
+.eyebrow{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:6px 10px;margin:0 0 16px}
+h1{font:700 clamp(30px,4.4vw,44px)/1.25 "Segoe UI","Microsoft YaHei",sans-serif;margin:0 0 10px;letter-spacing:-.01em;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.lead{font-size:16px;color:#3c5566;max-width:64ch;margin:0}
+nav{display:flex;flex-wrap:wrap;gap:4px 16px;padding:12px 0;border-bottom:1px dashed var(--line);font:12px/1.6 var(--mono)}
+nav a{color:var(--ink);text-decoration:none}
+a{color:var(--accent)}
+section{padding:30px 0 26px;border-bottom:1px dashed var(--line);position:relative;scroll-margin-top:16px}
+section[data-no]:before{content:"SEC " attr(data-no);position:absolute;right:0;top:6px;font:10px/1 var(--mono);letter-spacing:.2em;color:var(--accent);padding-bottom:3px;border-bottom:1px solid var(--accent)}
+h2{font:700 21px/1.5 "Segoe UI","Microsoft YaHei",sans-serif;margin:0 0 12px}
+.sec-no{display:none}
+p{margin:11px 0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:#fff}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#eaf2f5;font:600 10.5px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.callout{border:1px dashed var(--accent);background:#eef7f8;padding:16px 16px 12px;margin:20px 0;position:relative;font-size:15px}
+.callout:before{content:"NOTE";position:absolute;top:-8px;left:14px;background:var(--paper);padding:0 6px;font:10px/1 var(--mono);letter-spacing:.22em;color:var(--accent)}
+figure.code{margin:18px 0;border:1px solid var(--line);background:#fff}
+figcaption{font:10.5px/1 var(--mono);letter-spacing:.16em;color:var(--accent);padding:9px 12px;border-bottom:1px dashed var(--line);background:#f0f6f8}
+pre{margin:0;padding:13px 14px;background:#fff;font:13px/1.7 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;color:#1b3a52}
+ul.criteria{list-style:none;padding-left:0}
+ul.criteria li{position:relative;padding-left:22px;font-size:14.5px}
+ul.criteria li:before{content:"";position:absolute;left:2px;top:6px;width:9px;height:9px;border:1.5px solid var(--accent);background:#fff}
+.objectives>ul{list-style:none;padding-left:0}
+.objectives>ul>li{padding:14px 0;border-bottom:1px dashed var(--line)}
+.objectives>ul>li>strong{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--accent);padding:4px 7px;margin-right:9px}
+.practice tr.wrong td{background:#fdf1ef}
+.practice tr.simulated{color:#6b7f8c}
+.sources{list-style:none;padding:0}
+.sources li{border-left:2px solid var(--accent);padding:10px 14px;margin:10px 0;background:#fff}
+.sources li strong{font:600 11px/1 var(--mono);letter-spacing:.1em;color:var(--accent)}
+.sources blockquote{margin:6px 0 0;font-size:14px;color:#3c5566;border:0;padding:0}
+.source{font:12px/1.7 var(--mono);color:#5b7283}
+.mindmap{text-align:center}
+.mindmap figcaption{font:11.5px/1.7 var(--mono);color:#5b7283;background:none;border:0;padding:8px 0 0}
+.portable-state pre{max-height:320px;overflow:auto;background:#fff;border:1px solid var(--line);padding:14px}
+.footer{margin:30px 0 0;padding-top:12px;border-top:1px dashed var(--line);font:10.5px/1.6 var(--mono);color:#5b7283;text-align:center}
+@media(max-width:600px){main{margin:0;padding:26px 18px;box-shadow:none}section[data-no]:before{display:none}h1{font-size:27px}nav{gap:4px 10px}}
+.pager{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:5px;z-index:9}
+.pager a{display:flex;align-items:center;justify-content:center;width:30px;height:30px;font:600 12px/1 var(--mono);color:var(--accent);text-decoration:none;background:var(--paper);border:1px solid var(--line)}
+.pager a:hover{background:var(--accent);color:#fff}
+.pager .pager-top{background:var(--ink);color:#fff;border-color:var(--ink)}
+.next-link{margin:18px 0 0;text-align:right;font:12px/1.6 var(--mono)}
+.next-link a{color:#5b7283;text-decoration:none}
+.next-link a:hover{color:var(--accent)}
+@media(max-width:600px){.pager{right:10px;bottom:10px;gap:4px}.pager a{width:26px;height:26px;font-size:11px}}
+nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid currentColor;border-radius:2px;font-size:11.5px;text-decoration:none}
+@media print{.pager,.next-link{display:none}@page{size:A4;margin:15mm}body{background:#fff}main{max-width:none;margin:0;padding:0;border:0;box-shadow:none}main:before,main:after{display:none}nav,.portable-state,.footer{display:none}section{border-bottom:.5pt dashed #ccc;padding:13pt 0}section[data-no]:before{display:none}h2{break-after:avoid}thead{display:table-header-group}tr{break-inside:avoid}a{color:inherit;text-decoration:none}pre{overflow:visible;max-height:none;font-size:9pt}}
+.night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
+.night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
+.night-toggle-label:before{content:"◐ 夜间"}
+.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
+@media print{.night-toggle,.night-toggle-label{display:none}}
+
+body{padding-top:48px}
+.topbar{position:fixed;inset:0 0 auto 0;height:48px;display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--ink);color:#fff;z-index:30;font:600 12.5px/1 "Segoe UI","Microsoft YaHei",sans-serif;letter-spacing:.05em}
+.topbar .tb-title{font-weight:700}
+.topbar .tb-meta{opacity:.62;font-weight:400;letter-spacing:.02em}
+.topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.topbar .night-toggle-label:before{color:inherit}
+@media print{.topbar{display:none}body{padding-top:0}}
+html:has(#night:checked) body{background:#0a141c;color:#cfe2ea;background-image:none}
+html:has(#night:checked) main{background:#0f1e2a;border-color:#24404f;box-shadow:none}
+html:has(#night:checked) header{border-color:#24404f}
+html:has(#night:checked) h1,html:has(#night:checked) h2{color:#e6f2f8}
+html:has(#night:checked) p,html:has(#night:checked) li,html:has(#night:checked) td,html:has(#night:checked) th,html:has(#night:checked) .lead{color:#cfe2ea}
+html:has(#night:checked) th{background:#16303d}
+html:has(#night:checked) table,html:has(#night:checked) pre,html:has(#night:checked) figure.code,html:has(#night:checked) .sources li,html:has(#night:checked) .mindmap figure{background:#122836;border-color:#24404f}
+html:has(#night:checked) pre{color:#d6e6ee}
+html:has(#night:checked) figcaption{background:#16303d;color:#8fb0bf;border-color:#24404f}
+html:has(#night:checked) .callout{background:#122836}
+html:has(#night:checked) a{color:#5fc2cf}
+html:has(#night:checked) .source,html:has(#night:checked) nav a,html:has(#night:checked) .next-link a{color:#8fb0bf}
+html:has(#night:checked) .sources blockquote{color:#cfe2ea}
+html:has(#night:checked) .night-toggle-label{background:#122836;color:#cfe2ea;border-color:#24404f}
+html:has(#night:checked) .topbar{background:#070d12}
+html:has(#night:checked) .pager a{background:#122836;color:#cfe2ea;border-color:#24404f}
+
+html:has(#night:checked) section[data-no]:before{color:#5fc2cf;border-color:#5fc2cf}
+</style></head>
+<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">技术学习</p><h1>Spring Boot 3 订单接口：从 Controller 到 SQL</h1><p class="lead">一次请求穿过三层：Controller 收参数、Service 管事务、Mapper 绑 SQL；异常在边界统一收口。</p></header><nav aria-label="章节导航"><a href="#section-api">分层：一次请求经过谁</a><a href="#section-controller">Controller：只接参数、只返结果</a><a href="#section-validation">DTO 校验：把坏请求挡在门外</a><a href="#section-service">Service：事务边界画在哪</a><a href="#section-mapper">Mapper：SQL 与参数绑定</a><a href="#section-debug">排错顺序：日志 → 参数 → SQL</a><a href="#section-quiz">自测：三个必答</a></nav><section id="section-api" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>分层：一次请求经过谁</h2><p>接口层只负责协议转换，业务规则留在 Service，SQL 只出现在 Mapper。三层各自可测，改动才不会互相牵连。</p>
+<table><thead><tr><th scope="col">层</th><th scope="col">职责</th><th scope="col">关键注解</th></tr></thead><tbody><tr><td>Controller</td><td>接参数、校验、返回视图</td><td>@RestController · @Valid</td></tr><tr><td>Service</td><td>业务规则、事务边界</td><td>@Service · @Transactional</td></tr><tr><td>Mapper</td><td>SQL 与结果映射</td><td>@Mapper · @Select</td></tr></tbody></table><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-controller">下一节：Controller：只接参数、只返结果 →</a></p></section>
+<section id="section-controller" data-no="02"><p class="eyebrow">来源材料</p><h2><span class="sec-no">02</span>Controller：只接参数、只返结果</h2><figure class="code"><figcaption>Java · OrderController</figcaption><pre><code>@RestController
+@RequestMapping(&quot;/api/orders&quot;)
+public class OrderController {
+    private final OrderService service;
+    public OrderController(OrderService service) { this.service = service; }
+
+    @GetMapping(&quot;/{id}&quot;)
+    public OrderView get(@PathVariable long id) {
+        return service.find(id);
+    }
+}</code></pre></figure>
+<ul><li>构造器注入，字段 final，便于测试替换。</li><li>返回对象而不是拼接 JSON 字符串。</li><li>不在 Controller 里写 if 业务判断。</li></ul><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-validation">下一节：DTO 校验：把坏请求挡在门外 →</a></p></section>
+<section id="section-validation" data-no="03"><p class="eyebrow">来源材料</p><h2><span class="sec-no">03</span>DTO 校验：把坏请求挡在门外</h2><figure class="code"><figcaption>Java · 请求体与校验</figcaption><pre><code>public record CreateOrderRequest(
+        @NotNull Long userId,
+        @NotEmpty List&lt;@Valid Item&gt; items) {}
+
+@PostMapping
+public OrderView create(@Valid @RequestBody CreateOrderRequest req) {
+    return service.create(req);
+}</code></pre></figure>
+<aside class="callout"><strong>提示</strong><p>@Valid 失败默认返回 400，不会进入方法体。400 是请求问题，500 才是服务端问题，排错方向完全不同。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-service">下一节：Service：事务边界画在哪 →</a></p></section>
+<section id="section-service" data-no="04"><p class="eyebrow">来源材料</p><h2><span class="sec-no">04</span>Service：事务边界画在哪</h2><figure class="code"><figcaption>Java · 事务</figcaption><pre><code>@Service
+public class OrderService {
+    private final OrderMapper mapper;
+    public OrderService(OrderMapper mapper) { this.mapper = mapper; }
+
+    @Transactional(rollbackFor = Exception.class)
+    public OrderView create(CreateOrderRequest req) {
+        long id = mapper.insert(req);
+        return mapper.findById(id);
+    }
+}</code></pre></figure>
+<aside class="callout"><strong>提示</strong><p>@Transactional 默认只对 RuntimeException 回滚；有受检异常时要显式写 rollbackFor = Exception.class。事务不要包住远程调用。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-mapper">下一节：Mapper：SQL 与参数绑定 →</a></p></section>
+<section id="section-mapper" data-no="05"><p class="eyebrow">来源材料</p><h2><span class="sec-no">05</span>Mapper：SQL 与参数绑定</h2><figure class="code"><figcaption>Java · MyBatis</figcaption><pre><code>@Mapper
+public interface OrderMapper {
+    @Select(&quot;select id, user_id, amount from orders where id = #{id}&quot;)
+    OrderRow findById(long id);
+}</code></pre></figure>
+<table><thead><tr><th scope="col">写法</th><th scope="col">编译结果</th><th scope="col">风险</th></tr></thead><tbody><tr><td>#{id}</td><td>PreparedStatement 占位符</td><td>参数被正确处理，推荐</td></tr><tr><td>${id}</td><td>字符串直接拼接</td><td>可能 SQL 注入，禁用</td></tr><tr><td>${columns}</td><td>拼接列名</td><td>只允许白名单常量</td></tr></tbody></table><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-debug">下一节：排错顺序：日志 → 参数 → SQL →</a></p></section>
+<section id="section-debug" data-no="06"><p class="eyebrow">来源材料</p><h2><span class="sec-no">06</span>排错顺序：日志 → 参数 → SQL</h2><ul><li>先看异常栈第一行，确认是 4xx 还是 5xx。</li><li>400 先核对请求体字段名与类型。</li><li>5xx 打开 SQL 日志，确认语句与参数。</li><li>用最小请求复现，再逐层加回条件。</li></ul>
+<aside class="callout"><strong>提示</strong><p>不要在 Controller 里 try-catch 吞掉异常；统一异常处理只做转换，不隐藏堆栈。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-quiz">下一节：自测：三个必答 →</a></p></section>
+<section id="section-quiz" data-no="07"><p class="eyebrow">补充解释</p><h2><span class="sec-no">07</span>自测：三个必答</h2><p>1. @Transactional 默认对哪些异常回滚？</p>
+<p>答：RuntimeException 及其子类；受检异常需要 rollbackFor = Exception.class。</p>
+<p>2. #{} 和 ${} 的区别？</p>
+<p>答：#{} 走 PreparedStatement 占位符并处理参数；${} 直接拼接字符串，可能被注入。</p>
+<p>3. 接口返回 400 和 500，分别先查什么？</p>
+<p>答：400 查参数绑定与校验；500 查服务端异常栈与 SQL。</p><p class="source">补充解释，不是原文摘录</p></section><section><h2>原始材料与来源</h2><ol class="sources"><li id="source-S1"><strong>[S1] 教学演示材料（人工编写），第1段</strong><blockquote>教学演示材料（人工编写）：Spring Boot 3 需要 Java 17 或更高版本。@RestController 的返回值由 Jackson 序列化为 JSON；@Valid 触发 DTO 校验；@Transactional 默认只在 RuntimeException 时回滚；MyBatis 用 @Mapper 扫描接口，#{} 走 PreparedStatement，${} 是字符串拼接。</blockquote></li></ol></section><section class="mindmap" id="outline"><h2>结构一览</h2><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 774 178" width="774" height="178" role="img" aria-label="章节结构图：7 节" style="max-width:100%;height:auto"><g><a href="#section-api"><rect x="12" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="24" y="35" font-size="11" fill="#7a8895">01</text><text x="24" y="58" font-size="14" font-weight="600" fill="#202c36">分层：一次请求经过谁</text></a><title>分层：一次请求经过谁</title></g><polygon points="197,45 189,41 189,49" fill="#9db0c0"/><g><a href="#section-controller"><rect x="206" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="218" y="35" font-size="11" fill="#7a8895">02</text><text x="218" y="58" font-size="14" font-weight="600" fill="#202c36">Controller：…</text></a><title>Controller：只接参数、只返结果</title></g><polygon points="391,45 383,41 383,49" fill="#9db0c0"/><g><a href="#section-validation"><rect x="400" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="412" y="35" font-size="11" fill="#7a8895">03</text><text x="412" y="58" font-size="14" font-weight="600" fill="#202c36">DTO 校验：把坏请求…</text></a><title>DTO 校验：把坏请求挡在门外</title></g><polygon points="585,45 577,41 577,49" fill="#9db0c0"/><g><a href="#section-service"><rect x="594" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="606" y="35" font-size="11" fill="#7a8895">04</text><text x="606" y="58" font-size="14" font-weight="600" fill="#202c36">Service：事务边…</text></a><title>Service：事务边界画在哪</title></g><g><a href="#section-mapper"><rect x="12" y="102" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="24" y="123" font-size="11" fill="#7a8895">05</text><text x="24" y="146" font-size="14" font-weight="600" fill="#202c36">Mapper：SQL …</text></a><title>Mapper：SQL 与参数绑定</title></g><polygon points="197,133 189,129 189,137" fill="#9db0c0"/><g><a href="#section-debug"><rect x="206" y="102" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="218" y="123" font-size="11" fill="#7a8895">06</text><text x="218" y="146" font-size="14" font-weight="600" fill="#202c36">排错顺序：日志 → 参…</text></a><title>排错顺序：日志 → 参数 → SQL</title></g><polygon points="391,133 383,129 383,137" fill="#9db0c0"/><g><a href="#section-quiz"><rect x="400" y="102" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="412" y="123" font-size="11" fill="#7a8895">07</text><text x="412" y="146" font-size="14" font-weight="600" fill="#202c36">自测：三个必答</text></a><title>自测：三个必答</title></g></svg><figcaption>按章节顺序从左到右、从上到下阅读；点击卡片跳到对应章节。</figcaption></figure></section><p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p><nav class="pager" aria-label="章节翻页"><a href="#section-api" title="分层：一次请求经过谁">1</a><a href="#section-controller" title="Controller：只接参数、只返结果">2</a><a href="#section-validation" title="DTO 校验：把坏请求挡在门外">3</a><a href="#section-service" title="Service：事务边界画在哪">4</a><a href="#section-mapper" title="Mapper：SQL 与参数绑定">5</a><a href="#section-debug" title="排错顺序：日志 → 参数 → SQL">6</a><a href="#section-quiz" title="自测：三个必答">7</a><a class="pager-top" href="#top" aria-label="回到顶部">↑</a></nav></main></body></html>

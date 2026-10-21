@@ -1,5 +1,7 @@
 node_modules/
-dist/
-versions/
-*.zip
+*.log
 .DS_Store
+Thumbs.db
+.versions/
+out/
+*.zip

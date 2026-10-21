@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "note": {
+    "schemaVersion": 1,
+    "id": "math-advanced",
+    "revision": 1,
+    "title": "一次函数：读懂斜率与截距（进阶版）",
+    "scene": "course",
+    "style": "style-a",
+    "summary": "先看变化率，再看起点；把公式、图像和实际含义对应起来。",
+    "sources": [
+      {
+        "id": "S1",
+        "label": "教学演示材料（人工编写），第1段",
+        "text": "一次函数 y=kx+b，k≠0。k 是斜率，b 是直线与 y 轴交点的纵坐标。当 k>0 时，y 随 x 增大而增大；k<0 时则减小。例：y=2x+1，x 从1增加到3，y 从3增加到7。"
+      }
+    ],
+    "sections": [
+      {
+        "id": "concept",
+        "heading": "斜率与截距",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "符号",
+              "含义",
+              "读图方法"
+            ],
+            "rows": [
+              [
+                "k",
+                "Δy/Δx（Δx≠0）",
+                "横坐标增加1时纵坐标的变化量"
+              ],
+              [
+                "b",
+                "y 轴截距",
+                "令 x=0，得到 y=b"
+              ]
+            ]
+          },
+          {
+            "type": "callout",
+            "text": "一次函数要求 k≠0；“截距”是带符号的数，不等于距离。"
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "example",
+        "heading": "例题：y=2x+1",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "当 x=1，y=3；当 x=3，y=7。",
+              "Δx=2，Δy=4，所以 k=4/2=2。",
+              "当 x=0，y=1，所以 b=1。"
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "quiz",
+        "heading": "自测与答案",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "对于 y=−3x+2，判断随 x 增大时 y 如何变化，并求 y 轴截距。"
+          },
+          {
+            "type": "paragraph",
+            "text": "答案：y 减小；y 轴截距是2。理由：k=−3<0，b=2。"
+          }
+        ],
+        "origin": "supplement",
+        "sourceIds": []
+      }
+    ],
+    "objectives": [
+      {
+        "id": "obj-slope",
+        "text": "能说明斜率与截距的含义",
+        "criteria": [
+          "能解释 k 的符号与增减性",
+          "能说出 b 是 y 轴截距而不是距离"
+        ],
+        "sectionIds": [
+          "concept"
+        ]
+      },
+      {
+        "id": "obj-calc",
+        "text": "能由两点求出斜率并写出表达式",
+        "criteria": [
+          "能写出 k=(y2−y1)/(x2−x1)",
+          "能说明 x1=x2 时不能求有限斜率"
+        ],
+        "sectionIds": [
+          "example"
+        ]
+      },
+      {
+        "id": "obj-self",
+        "text": "能独立完成自测并说明理由",
+        "criteria": [
+          "能判断 k<0 时 y 随 x 减小",
+          "能由 k、b 反推图像走势"
+        ],
+        "sectionIds": [
+          "quiz"
+        ]
+      }
+    ],
+    "practice": [
+      {
+        "id": "p1",
+        "objectiveId": "obj-slope",
+        "question": "y=-3x+2 中，x 增大时 y 如何变化？",
+        "answer": "y 减小，因为 k=-3<0",
+        "verdict": "right",
+        "simulated": false,
+        "note": "课堂自测第 2 题"
+      },
+      {
+        "id": "p2",
+        "objectiveId": "obj-calc",
+        "question": "直线过 (1,3) 与 (3,7)，求斜率。",
+        "answer": "k=(7−3)/(3−1)=2",
+        "verdict": "right",
+        "simulated": false
+      },
+      {
+        "id": "p3",
+        "objectiveId": "obj-calc",
+        "question": "两点横坐标相同时能否用该式求斜率？",
+        "answer": "能，直接相减",
+        "verdict": "wrong",
+        "simulated": false,
+        "note": "分母为 0，应为不存在有限斜率"
+      },
+      {
+        "id": "p4",
+        "objectiveId": "obj-self",
+        "question": "演示题：由 y=2x+1 说出截距",
+        "answer": "b=1",
+        "verdict": "right",
+        "simulated": true,
+        "note": "演示用，不计入掌握"
+      }
+    ]
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "slope",
+        "label": "斜率",
+        "sectionIds": [
+          "concept"
+        ],
+        "mastery": "learning",
+        "evidence": [
+          "课堂自测第 2 题答对"
+        ]
+      },
+      {
+        "id": "linear-example",
+        "label": "一次函数计算",
+        "sectionIds": [
+          "example"
+        ],
+        "mastery": "review",
+        "evidence": [
+          "横坐标相同的情况答错，需重做"
+        ]
+      },
+      {
+        "id": "self-test",
+        "label": "自测与答案",
+        "sectionIds": [
+          "quiz"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      }
+    ],
+    "edges": [
+      {
+        "from": "slope",
+        "to": "linear-example",
+        "type": "prerequisite",
+        "basis": "例题需要先理解斜率定义（教学建议）"
+      },
+      {
+        "from": "linear-example",
+        "to": "self-test",
+        "type": "prerequisite",
+        "basis": "自测检验计算是否熟练（教学建议）"
+      }
+    ]
+  },
+  "history": [
+    {
+      "revision": 1,
+      "summary": "首次整理"
+    }
+  ]
+}

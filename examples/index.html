@@ -1,0 +1,86 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>全天候智慧学伴 · 示例与对照</title><style>:root{--ink:#2b2b2b;--paper:#fdf9ef;--coral:#e76f51;--teal:#2a9d8f;--mustard:#e9c46a;--hand:KaiTi,STKaiti,"Songti SC",serif}
+*{box-sizing:border-box}
+body{margin:0;background:#efe9dc;color:var(--ink);font:16px/1.85 "Segoe UI","Microsoft YaHei",sans-serif;background-image:radial-gradient(#cfc4ae 1px,transparent 1px);background-size:18px 18px}
+main{max-width:880px;margin:36px auto;padding:54px 58px 40px;background:var(--paper);box-shadow:0 20px 50px rgba(60,45,30,.14);position:relative}
+header{position:relative;padding:4px 0 18px;border-bottom:2px dashed #d9cdb4}
+.eyebrow{display:block;width:max-content;background:var(--mustard);color:#4a3a10;font:600 11px/1 var(--hand);letter-spacing:.22em;padding:7px 13px;transform:rotate(-1.4deg);margin:0 0 14px}
+h1{font:700 clamp(32px,5vw,48px)/1.22 var(--hand);margin:0 0 12px;background:linear-gradient(transparent 68%,rgba(233,196,106,.55) 68% 94%,transparent 94%);display:inline;padding:0 4px;box-decoration-break:clone;-webkit-box-decoration-break:clone;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.lead{font-size:16px;color:#5a5142;max-width:62ch;margin:12px 0 0}
+nav{display:flex;flex-wrap:wrap;gap:6px 12px;padding:14px 0;border-bottom:2px dashed #d9cdb4}
+nav a{font:13px/1 var(--hand);color:#6b5e48;text-decoration:none;border-bottom:1px solid #cbbda1;padding:4px 2px}
+nav a:hover{color:var(--coral);border-color:var(--coral)}
+a{color:var(--teal)}
+section{padding:30px 0 24px;border-bottom:1px dashed #ddd2bb;position:relative}
+h2{font:700 24px/1.4 var(--hand);margin:0 0 14px;position:relative}
+section[data-no] h2{padding-left:46px}
+.sec-no{position:absolute;left:0;top:-6px;width:34px;height:34px;line-height:34px;text-align:center;font:700 15px/34px var(--hand);color:#fff;background:var(--coral);transform:rotate(-6deg);box-shadow:2px 2px 0 rgba(231,111,81,.25)}
+p{margin:11px 0}
+ul,ol{padding-left:22px}li{margin:7px 0}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;background:#fffdf7}
+th,td{border:1px dashed #cfc2a8;padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#f6ecd8;font-family:var(--hand);font-weight:700;font-size:13.5px}
+.callout{position:relative;background:#fff6d8;padding:18px 18px 14px;margin:24px 0;transform:rotate(-.4deg);box-shadow:0 2px 0 #e8dbb5}
+.callout:before{content:"";position:absolute;top:-9px;left:50%;width:66px;height:20px;margin-left:-33px;background:rgba(214,196,140,.45);transform:rotate(1.2deg)}
+figure.code{margin:18px 0;border:1px dashed #cfc2a8;background:#fffdf7}
+figcaption{font:11px/1 var(--hand);letter-spacing:.12em;color:#8a7d63;padding:9px 12px;border-bottom:1px dashed #cfc2a8}
+pre{margin:0;padding:13px 14px;background:#fffdf7;font:13px/1.7 Consolas,"Courier New",monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+ul.criteria{list-style:none;padding-left:0}
+ul.criteria li{position:relative;padding-left:24px;font-size:14.5px}
+ul.criteria li:before{content:"";position:absolute;left:2px;top:5px;width:11px;height:11px;border:1.6px solid var(--teal);background:#fff;transform:rotate(-3deg)}
+.objectives>ul{list-style:none;padding-left:0}
+.objectives>ul>li{padding:14px 0;border-bottom:1px dotted #d8cbb2}
+.objectives>ul>li>strong{display:inline-block;background:var(--teal);color:#fff;font:600 11px/1 var(--hand);letter-spacing:.14em;padding:5px 8px;transform:rotate(-1deg);margin-right:8px}
+.practice tr.wrong td{background:#fdeae4}
+.practice tr.simulated{color:#8a7d63}
+.sources{list-style:none;padding:0}
+.sources li{background:#fffdf7;border:1px dashed #cfc2a8;padding:11px 14px;margin:10px 0}
+.sources li strong{font:700 12.5px/1 var(--hand);color:var(--coral)}
+.sources blockquote{margin:6px 0 0;font-size:14px;color:#5a5142;border:0;padding:0}
+.source{font:12.5px/1.7 var(--hand);color:#8a7d63}
+.mindmap{text-align:center}
+.mindmap figcaption{font:12px/1.7 var(--hand);color:#8a7d63;background:none;border:0;padding:8px 0 0}
+.portable-state pre{max-height:320px;overflow:auto;border:1px dashed #cfc2a8;padding:14px;background:#fffdf7}
+.footer{margin:32px 0 0;padding-top:14px;border-top:2px dashed #d9cdb4;font:11.5px/1.6 var(--hand);letter-spacing:.1em;color:#8a7d63;text-align:center}
+@media(max-width:600px){main{margin:0;padding:26px 18px}section[data-no] h2{padding-left:0}.sec-no{position:static;display:inline-block;margin:0 8px 8px 0}h1{font-size:30px}}
+.pager{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:6px;z-index:9}
+.pager a{display:flex;align-items:center;justify-content:center;width:32px;height:32px;font:700 13px/1 var(--hand);color:#fff;text-decoration:none;background:var(--coral);border-radius:50%;box-shadow:1px 1px 0 rgba(231,111,81,.3)}
+.pager a:nth-child(even){background:var(--teal)}
+.pager a:hover{transform:rotate(-6deg)}
+.pager .pager-top{background:var(--ink)}
+.next-link{margin:18px 0 0;text-align:right;font:13px/1.6 var(--hand)}
+.next-link a{color:#8a7d63;text-decoration:none;border-bottom:1px dashed #cbbda1}
+.next-link a:hover{color:var(--coral)}
+@media(max-width:600px){.pager{right:10px;bottom:10px;gap:5px}.pager a{width:28px;height:28px;font-size:12px}}
+nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid currentColor;border-radius:2px;font-size:11.5px;text-decoration:none}
+@media print{.pager,.next-link{display:none}@page{size:A4;margin:15mm}body{background:#fff}main{max-width:none;margin:0;padding:0;box-shadow:none}nav,.portable-state,.footer{display:none}section{border-bottom:.5pt dashed #ddd;padding:13pt 0}h2{break-after:avoid}.callout{transform:none;box-shadow:none}thead{display:table-header-group}tr{break-inside:avoid}a{color:inherit;text-decoration:none}pre{overflow:visible;max-height:none;font-size:9pt}}
+.night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
+.night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
+.night-toggle-label:before{content:"◐ 夜间"}
+.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
+@media print{.night-toggle,.night-toggle-label{display:none}}
+
+body{padding-top:48px}
+.topbar{position:fixed;inset:0 0 auto 0;height:48px;display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--ink);color:#fff;z-index:30;font:600 12.5px/1 "Segoe UI","Microsoft YaHei",sans-serif;letter-spacing:.05em}
+.topbar .tb-title{font-weight:700}
+.topbar .tb-meta{opacity:.62;font-weight:400;letter-spacing:.02em}
+.topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.topbar .night-toggle-label:before{color:inherit}
+@media print{.topbar{display:none}body{padding-top:0}}
+html:has(#night:checked) body{background:#161310;color:#e8dfcc;background-image:none}
+html:has(#night:checked) main{background:#221d17;border-color:#3f3628;box-shadow:none}
+html:has(#night:checked) header{border-color:#3f3628}
+html:has(#night:checked) h1,html:has(#night:checked) h2{color:#f3e9d2}
+html:has(#night:checked) p,html:has(#night:checked) li,html:has(#night:checked) td,html:has(#night:checked) th,html:has(#night:checked) .lead{color:#e8dfcc}
+html:has(#night:checked) th{background:#2c2519}
+html:has(#night:checked) table,html:has(#night:checked) pre,html:has(#night:checked) figure.code,html:has(#night:checked) .sources li,html:has(#night:checked) .mindmap figure{background:#2a2319;border-color:#3f3628}
+html:has(#night:checked) pre{color:#efe6d4}
+html:has(#night:checked) figcaption{background:#2c2519;color:#b3a48b;border-color:#3f3628}
+html:has(#night:checked) .callout{background:#3a3020}
+html:has(#night:checked) a{color:#7fd0c2}
+html:has(#night:checked) .source,html:has(#night:checked) nav a,html:has(#night:checked) .next-link a{color:#b3a48b}
+html:has(#night:checked) .sources blockquote{color:#e8dfcc}
+html:has(#night:checked) .night-toggle-label{background:#2a2319;color:#e8dfcc;border-color:#3f3628}
+html:has(#night:checked) .topbar{background:#070d12}
+html:has(#night:checked) h1{background:linear-gradient(transparent 68%,rgba(217,180,94,.3) 68% 94%,transparent 94%)}
+</style></head><body><main><header><p class="eyebrow">全天候智慧学伴 · 国赛体验材料</p><h1>把零散材料<br>变成可复习的笔记</h1><p class="lead">先看原文，再打开笔记核对。主示例是一门 Java Web 后端教程；所有示例为人工编写的教学材料，不代表真实学生实验数据。</p></header><nav aria-label="体验路径"><a href="java-web.html">Java 后端 · 主示例</a><a href="java-web-style-b.html">同内容 · 蓝图</a><a href="java-web-style-c.html">同内容 · 手账</a><a href="math-updated.html">增量更新 · 数学夹具</a></nav><section><p class="eyebrow">tech · style-a</p><h2>Spring Boot 3 订单接口：从 Controller 到 SQL</h2><h3>生成前 · 原始材料</h3><blockquote>教学演示材料（人工编写）：Spring Boot 3 需要 Java 17 或更高版本。@RestController 的返回值由 Jackson 序列化为 JSON；@Valid 触发 DTO 校验；@Transactional 默认只在 RuntimeException 时回滚；MyBatis 用 @Mapper 扫描接口，#{} 走 PreparedStatement，${} 是字符串拼接。</blockquote><h3>生成后 · 整理结果</h3><p>一次请求穿过三层：Controller 收参数、Service 管事务、Mapper 绑 SQL；异常在边界统一收口。</p><p>章节：分层：一次请求经过谁 / Controller：只接参数、只返结果 / DTO 校验：把坏请求挡在门外 / Service：事务边界画在哪 / Mapper：SQL 与参数绑定 / 排错顺序：日志 → 参数 → SQL / 自测：三个必答</p><a href="java-web.html">打开完整笔记 →</a></section><section><p class="eyebrow">course · style-a</p><h2>牛顿第二定律：合力决定加速度</h2><h3>生成前 · 原始材料</h3><blockquote>在惯性参考系内，对质量不变的物体，合外力 F合=ma，方向与加速度一致。质量2kg的小车受水平向右10N拉力和向左2N摩擦力，竖直方向合力为0。水平合力8N，加速度向右4m/s²。</blockquote><h3>生成后 · 整理结果</h3><p>计算之前，先明确研究对象、参考系和合力。</p><p>章节：适用条件与公式 / 小车受力计算 / 自测与答案</p><a href="physics.html">打开完整笔记 →</a></section><section><p class="eyebrow">tech · style-c</p><h2>Python 列表：复制与共享</h2><h3>生成前 · 原始材料</h3><blockquote>Python 中 b=a 会让两个变量引用同一个列表。b=a.copy() 创建新的外层列表，是浅拷贝。嵌套列表的内部对象仍共享。列表推导式可以从可迭代对象构造新列表。</blockquote><h3>生成后 · 整理结果</h3><p>赋值不会复制列表；先理解对象共享，再选择复制方式。</p><p>章节：赋值和浅拷贝的区别 / 观察共享行为 / 自测：嵌套列表</p><a href="programming.html">打开完整笔记 →</a></section><section><p class="eyebrow">meeting · style-b</p><h2>课程项目会议：把讨论变成行动</h2><h3>生成前 · 原始材料</h3><blockquote>10月12日项目会：小林负责整理数学示例，10月15日前交付；小周负责离线打印检查，10月16日前交付。大家同意演示先展示输入与笔记对照，再展示增量更新。音频转写是否接入仍需确认，预算未提供。</blockquote><h3>生成后 · 整理结果</h3><p>确定演示范围，记录责任归属，把未决事项留在明处。</p><p>章节：已确认的决议 / 行动清单 / 待确认事项</p><a href="meeting.html">打开完整笔记 →</a></section><section><p class="eyebrow">course · style-a</p><h2>检索练习：先回忆，再核对</h2><h3>生成前 · 原始材料</h3><blockquote>课程记录：检索练习指在不看材料时主动回忆。先合上书写出概念，再打开核对并修正遗漏。课堂任务：用自己的话解释一个概念，完成后与原文对照。没有提供具体复习间隔和提分数据。</blockquote><h3>生成后 · 整理结果</h3><p>用可检查的问题组织复习，区分熟悉感与实际回忆。</p><p>章节：检索练习的流程 / 可立即完成的练习 / 材料没有提供什么</p><a href="course.html">打开完整笔记 →</a></section><section><p class="eyebrow">science · style-a</p><h2>月相变化：从日月地位置理解</h2><h3>生成前 · 原始材料</h3><blockquote>月球本身不发光，反射太阳光。月球绕地球运动时，我们看到的被太阳照亮部分发生变化，形成月相。月食与月相不是同一种现象。</blockquote><h3>生成后 · 整理结果</h3><p>月相取决于从地球看到的月球受光部分。</p><p>章节：现象与原理 / 不要混淆月相和月食</p><a href="science.html">打开完整笔记 →</a></section><section><p class="eyebrow">reading · style-b</p><h2>阅读记录：观察与解释要分开</h2><h3>生成前 · 原始材料</h3><blockquote>教学自编短文：窗边的豆苗朝光处弯曲。我记下每天的位置，又把花盆转了半圈，想看看接下来会怎样。</blockquote><h3>生成后 · 整理结果</h3><p>把原文观点与自己的联想分别记录。</p><p>章节：文本依据 / 个人分析</p><a href="reading.html">打开完整笔记 →</a></section><section><p class="eyebrow">research · style-c</p><h2>班级阅读问卷：描述结果与局限</h2><h3>生成前 · 原始材料</h3><blockquote>某班自愿问卷收到20份有效回答，其中12人表示一周课外阅读至少3次，8人少于3次。问卷只覆盖一个班，未记录未回答者情况，也未核实自报频率。</blockquote><h3>生成后 · 整理结果</h3><p>报告已有样本，不把便利抽样当作全体学生结论。</p><p>章节：描述性结果 / 局限与后续建议 / 改进建议</p><a href="research.html">打开完整笔记 →</a></section><section><p class="eyebrow">project · style-b</p><h2>智慧学伴项目：先闭合演示路径</h2><h3>生成前 · 原始材料</h3><blockquote>教学演示项目记录：目标是离线学习笔记。当前已设计三种单文件主题和文本输入流程。下一步要核对打印结果、实际平台输出和字幕粘贴路径。外部OCR尚未接入，负责人和日期未提供。</blockquote><h3>生成后 · 整理结果</h3><p>用可交付文件证明能力，再记录待接入部分。</p><p>章节：已完成的设计 / 待验证与依赖 / 下一步</p><a href="project.html">打开完整笔记 →</a></section><section><h2>现场验证</h2><ol><li>断网后打开任意笔记，检查字体、公式和表格。</li><li>使用浏览器打印预览，核对正文、答案与来源。</li><li>打开数学增量版，对照初版确认旧章节保留。</li><li>复制页尾 JSON，在新会话提供给模型后继续整理。</li></ol><p>真实平台与不同模型的直接生成质量仍需按验收表实测；这些静态文件由 Node 渲染生成。</p></section></main></body></html>

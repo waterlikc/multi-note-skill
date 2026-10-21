@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>检索练习：先回忆，再核对</title><style>:root{--ink:#141210;--paper:#fffdf8;--accent:#b8382a;--muted:#6f665c;--rule:#e3dccf;--display:"Songti SC",STSong,Georgia,serif;--sans:"Segoe UI","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#efece6;color:var(--ink);font:17px/1.85 var(--sans)}
+main{max-width:900px;margin:40px auto;padding:62px 72px 46px;background:var(--paper);box-shadow:0 24px 60px rgba(20,18,16,.09);position:relative}
+header{padding-bottom:26px;border-bottom:3px double var(--ink);position:relative}
+.eyebrow{display:block;font:600 11px/1 var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin:0 0 20px}
+h1{font:700 clamp(34px,5.2vw,52px)/1.16 var(--display);letter-spacing:-.015em;margin:0 0 16px;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.lead{font:18px/1.85 var(--display);color:#3f3a33;max-width:60ch;margin:0}
+nav{display:flex;flex-wrap:wrap;gap:4px 20px;padding:16px 0;border-bottom:1px solid var(--rule);font-size:12.5px}
+nav a{color:var(--muted);text-decoration:none;letter-spacing:.05em}
+nav a:hover{color:var(--accent)}
+a{color:var(--accent);text-underline-offset:3px}
+section{padding:38px 0 30px;border-bottom:1px solid var(--rule);position:relative;scroll-margin-top:16px}
+section:last-of-type{border-bottom:0}
+h2{font:700 25px/1.4 var(--display);margin:0 0 18px;position:relative}
+section[data-no] h2{padding-left:56px}
+section:not([data-no]) h2{padding-left:0}
+.sec-no{position:absolute;left:0;top:-10px;font:700 42px/1 var(--display);color:var(--accent);opacity:.9}
+p{margin:12px 0}
+ul,ol{padding-left:22px}li{margin:8px 0}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+thead th{border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);font:600 11px/1.4 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+tbody tr:last-child td{border-bottom:2px solid var(--ink)}
+.callout{margin:26px 0;padding:4px 0 4px 26px;position:relative;font:19px/1.8 var(--display);color:#3a342d}
+.callout:before{content:"\201C";position:absolute;left:-2px;top:-16px;font:700 56px/1 var(--display);color:var(--accent);opacity:.3}
+figure.code{margin:22px 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+figcaption{font:11px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding:10px 0 6px}
+pre{margin:0;padding:14px 0 18px;background:none;font:13.5px/1.75 Consolas,"Courier New",monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#2a2620}
+ul.criteria{list-style:none;padding-left:0}
+ul.criteria li{position:relative;padding-left:20px;font-size:15px;color:#413b33}
+ul.criteria li:before{content:"\2014";position:absolute;left:0;color:var(--accent)}
+.objectives>ul{list-style:none;padding-left:0}
+.objectives>ul>li{padding:16px 0;border-bottom:1px dotted var(--rule)}
+.objectives>ul>li>strong{font:600 11px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-right:10px}
+.practice tr.wrong td{background:#fbefed}
+.practice tr.simulated{color:var(--muted)}
+.sources{list-style:none;padding:0}
+.sources li{border-top:1px solid var(--rule);padding:14px 0}
+.sources li strong{font:600 12px/1 var(--sans);letter-spacing:.1em;color:var(--accent)}
+.sources blockquote{margin:6px 0 0;font:15px/1.8 var(--display);color:#4a443b;border:0;padding:0}
+.source{font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+.mindmap{text-align:center}
+.mindmap figcaption{font-size:12px;color:var(--muted);letter-spacing:0;padding:8px 0 0;background:none;border:0}
+.portable-state pre{max-height:320px;overflow:auto;border:1px solid var(--rule);padding:14px}
+.footer{margin:36px 0 0;padding-top:16px;border-top:1px solid var(--rule);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:center}
+@media(max-width:600px){main{margin:0;padding:30px 20px}h1{font-size:30px}section[data-no] h2{padding-left:0}.sec-no{position:static;display:block;font-size:28px;margin-bottom:6px}nav{gap:4px 12px}}
+.pager{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:5px;z-index:9}
+.pager a{display:flex;align-items:center;justify-content:center;width:30px;height:30px;font:600 12px/1 var(--sans);color:var(--ink);text-decoration:none;background:var(--paper);border:1px solid var(--rule);box-shadow:0 1px 0 rgba(20,18,16,.08)}
+.pager a:hover{border-color:var(--accent);color:var(--accent)}
+.pager .pager-top{border-radius:50%;background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.next-link{margin:18px 0 0;text-align:right;font-size:13px}
+.next-link a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:2px}
+.next-link a:hover{color:var(--accent);border-color:var(--accent)}
+@media(max-width:600px){.pager{right:10px;bottom:10px;gap:4px}.pager a{width:26px;height:26px;font-size:11px}}
+nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid currentColor;border-radius:2px;font-size:11.5px;text-decoration:none}
+@media print{.pager,.next-link{display:none}@page{size:A4;margin:16mm}body{background:#fff}main{max-width:none;margin:0;padding:0;box-shadow:none}nav,.portable-state,.footer{display:none}section{border-bottom:.5pt solid #ddd;padding:14pt 0;break-inside:auto}h2{break-after:avoid}thead{display:table-header-group}tr{break-inside:avoid}a{color:inherit;text-decoration:none}pre{overflow:visible;max-height:none;font-size:9pt}}
+.night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
+.night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
+.night-toggle-label:before{content:"◐ 夜间"}
+.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
+@media print{.night-toggle,.night-toggle-label{display:none}}
+
+body{padding-top:48px}
+.topbar{position:fixed;inset:0 0 auto 0;height:48px;display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--ink);color:#fff;z-index:30;font:600 12.5px/1 "Segoe UI","Microsoft YaHei",sans-serif;letter-spacing:.05em}
+.topbar .tb-title{font-weight:700}
+.topbar .tb-meta{opacity:.62;font-weight:400;letter-spacing:.02em}
+.topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.topbar .night-toggle-label:before{color:inherit}
+@media print{.topbar{display:none}body{padding-top:0}}
+html:has(#night:checked) body{background:#12100e;color:#d6cec2;background-image:none}
+html:has(#night:checked) main{background:#1a1714;border-color:#3a332c;box-shadow:none}
+html:has(#night:checked) header{border-color:#3a332c}
+html:has(#night:checked) h1,html:has(#night:checked) h2{color:#f2ece2}
+html:has(#night:checked) p,html:has(#night:checked) li,html:has(#night:checked) td,html:has(#night:checked) th,html:has(#night:checked) .lead{color:#d6cec2}
+html:has(#night:checked) th{background:#241f1a}
+html:has(#night:checked) table,html:has(#night:checked) pre,html:has(#night:checked) figure.code,html:has(#night:checked) .sources li,html:has(#night:checked) .mindmap figure{background:#1d1915;border-color:#3a332c}
+html:has(#night:checked) pre{color:#e8e1d6}
+html:has(#night:checked) figcaption{background:#241f1a;color:#a89d8f;border-color:#3a332c}
+html:has(#night:checked) .callout{background:#2a2419}
+html:has(#night:checked) a{color:#e08a78}
+html:has(#night:checked) .source,html:has(#night:checked) nav a,html:has(#night:checked) .next-link a{color:#a89d8f}
+html:has(#night:checked) .sources blockquote{color:#d6cec2}
+html:has(#night:checked) .night-toggle-label{background:#1d1915;color:#d6cec2;border-color:#3a332c}
+html:has(#night:checked) .topbar{background:#070d12}
+html:has(#night:checked) .pager a{background:#1d1915;color:#d6cec2;border-color:#3a332c}
+</style></head>
+<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">课堂学习</p><h1>检索练习：先回忆，再核对</h1><p class="lead">用可检查的问题组织复习，区分熟悉感与实际回忆。</p></header><nav aria-label="章节导航"><a href="#section-definition">检索练习的流程</a><a href="#section-practice">可立即完成的练习</a><a href="#section-limits">材料没有提供什么</a></nav><section id="section-definition" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>检索练习的流程</h2><ul><li>合上资料，先尝试回忆。</li><li>写出概念解释或步骤。</li><li>对照原文，标记遗漏并修正。</li></ul><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-practice">下一节：可立即完成的练习 →</a></p></section>
+<section id="section-practice" data-no="02"><p class="eyebrow">补充解释</p><h2><span class="sec-no">02</span>可立即完成的练习</h2><p>不看上文，写出检索练习的三个步骤。</p>
+<p>参考答案：主动回忆 → 写出解释 → 对照并修正。请根据实际回答记录学习状态。</p><p class="source">补充解释，不是原文摘录</p><p class="next-link"><a href="#section-limits">下一节：材料没有提供什么 →</a></p></section>
+<section id="section-limits" data-no="03"><p class="eyebrow">需确认</p><h2><span class="sec-no">03</span>材料没有提供什么</h2><aside class="callout"><strong>提示</strong><p>具体复习间隔、适用人群和提分效果均未提供，不能用本笔记推断。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p></section><section><h2>原始材料与来源</h2><ol class="sources"><li id="source-S1"><strong>[S1] 教学演示材料（人工编写），第1段</strong><blockquote>课程记录：检索练习指在不看材料时主动回忆。先合上书写出概念，再打开核对并修正遗漏。课堂任务：用自己的话解释一个概念，完成后与原文对照。没有提供具体复习间隔和提分数据。</blockquote></li></ol></section><section class="mindmap" id="outline"><h2>结构一览</h2><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 774 90" width="774" height="90" role="img" aria-label="章节结构图：3 节" style="max-width:100%;height:auto"><g><a href="#section-definition"><rect x="12" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="24" y="35" font-size="11" fill="#7a8895">01</text><text x="24" y="58" font-size="14" font-weight="600" fill="#202c36">检索练习的流程</text></a><title>检索练习的流程</title></g><polygon points="197,45 189,41 189,49" fill="#9db0c0"/><g><a href="#section-practice"><rect x="206" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="218" y="35" font-size="11" fill="#7a8895">02</text><text x="218" y="58" font-size="14" font-weight="600" fill="#202c36">可立即完成的练习</text></a><title>可立即完成的练习</title></g><polygon points="391,45 383,41 383,49" fill="#9db0c0"/><g><a href="#section-limits"><rect x="400" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="412" y="35" font-size="11" fill="#7a8895">03</text><text x="412" y="58" font-size="14" font-weight="600" fill="#202c36">材料没有提供什么</text></a><title>材料没有提供什么</title></g></svg><figcaption>按章节顺序从左到右、从上到下阅读；点击卡片跳到对应章节。</figcaption></figure></section><section class="portable-state"><h2>继续学习</h2><p>保存本文件，或复制以下 JSON。下次对话提供旧文件或 JSON 后，可继续更新；此处没有云端存储。</p><p>版本 1 · 首次整理</p><pre id="note-state">{
+  &quot;schemaVersion&quot;: 1,
+  &quot;note&quot;: {
+    &quot;schemaVersion&quot;: 1,
+    &quot;id&quot;: &quot;course&quot;,
+    &quot;revision&quot;: 1,
+    &quot;title&quot;: &quot;检索练习：先回忆，再核对&quot;,
+    &quot;scene&quot;: &quot;course&quot;,
+    &quot;style&quot;: &quot;style-a&quot;,
+    &quot;summary&quot;: &quot;用可检查的问题组织复习，区分熟悉感与实际回忆。&quot;,
+    &quot;sources&quot;: [
+      {
+        &quot;id&quot;: &quot;S1&quot;,
+        &quot;label&quot;: &quot;教学演示材料（人工编写），第1段&quot;,
+        &quot;text&quot;: &quot;课程记录：检索练习指在不看材料时主动回忆。先合上书写出概念，再打开核对并修正遗漏。课堂任务：用自己的话解释一个概念，完成后与原文对照。没有提供具体复习间隔和提分数据。&quot;
+      }
+    ],
+    &quot;sections&quot;: [
+      {
+        &quot;id&quot;: &quot;definition&quot;,
+        &quot;heading&quot;: &quot;检索练习的流程&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;list&quot;,
+            &quot;items&quot;: [
+              &quot;合上资料，先尝试回忆。&quot;,
+              &quot;写出概念解释或步骤。&quot;,
+              &quot;对照原文，标记遗漏并修正。&quot;
+            ]
+          }
+        ],
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;practice&quot;,
+        &quot;heading&quot;: &quot;可立即完成的练习&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;不看上文，写出检索练习的三个步骤。&quot;
+          },
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;参考答案：主动回忆 → 写出解释 → 对照并修正。请根据实际回答记录学习状态。&quot;
+          }
+        ],
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;limits&quot;,
+        &quot;heading&quot;: &quot;材料没有提供什么&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;callout&quot;,
+            &quot;text&quot;: &quot;具体复习间隔、适用人群和提分效果均未提供，不能用本笔记推断。&quot;
+          }
+        ],
+        &quot;origin&quot;: &quot;uncertain&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      }
+    ]
+  },
+  &quot;graph&quot;: {
+    &quot;nodes&quot;: [],
+    &quot;edges&quot;: []
+  },
+  &quot;history&quot;: [
+    {
+      &quot;revision&quot;: 1,
+      &quot;summary&quot;: &quot;首次整理&quot;
+    }
+  ]
+}</pre></section><p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p></main></body></html>

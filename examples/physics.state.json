@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "note": {
+    "schemaVersion": 1,
+    "id": "physics",
+    "revision": 1,
+    "title": "牛顿第二定律：合力决定加速度",
+    "scene": "course",
+    "style": "style-a",
+    "summary": "计算之前，先明确研究对象、参考系和合力。",
+    "sources": [
+      {
+        "id": "S1",
+        "label": "教学演示材料（人工编写），第1段",
+        "text": "在惯性参考系内，对质量不变的物体，合外力 F合=ma，方向与加速度一致。质量2kg的小车受水平向右10N拉力和向左2N摩擦力，竖直方向合力为0。水平合力8N，加速度向右4m/s²。"
+      }
+    ],
+    "sections": [
+      {
+        "id": "law",
+        "heading": "适用条件与公式",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "在惯性参考系中，恒定质量物体满足 F合=ma。加速度方向与合力方向相同。"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "量",
+              "符号",
+              "单位"
+            ],
+            "rows": [
+              [
+                "合力",
+                "F合",
+                "N"
+              ],
+              [
+                "质量",
+                "m",
+                "kg"
+              ],
+              [
+                "加速度",
+                "a",
+                "m/s²"
+              ]
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "example",
+        "heading": "小车受力计算",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "选取向右为正方向。",
+              "F合=10−2=8 N。",
+              "a=F合/m=8/2=4 m/s²，方向向右。"
+            ]
+          },
+          {
+            "type": "callout",
+            "text": "不能把拉力直接当作合力。速度方向也不一定与加速度方向相同。"
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "quiz",
+        "heading": "自测与答案",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "若向右拉力仍为10N，向左摩擦力改为4N，求加速度。"
+          },
+          {
+            "type": "paragraph",
+            "text": "答案：(10−4)/2=3 m/s²，向右。"
+          }
+        ],
+        "origin": "supplement",
+        "sourceIds": []
+      }
+    ]
+  },
+  "graph": {
+    "nodes": [],
+    "edges": []
+  },
+  "history": [
+    {
+      "revision": 1,
+      "summary": "首次整理"
+    }
+  ]
+}
