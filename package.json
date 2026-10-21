@@ -1,6 +1,6 @@
 {
   "name": "multi-note-skill",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "type": "module",
   "description": "零依赖离线学习笔记渲染与可携带状态",
   "engines": {
