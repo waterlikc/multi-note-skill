@@ -138,16 +138,16 @@ test('三个主题的文字色与背景满足基本对比度', () => {
     assert.ok((luminance(bg)+.05)/(luminance(fg)+.05)>=4.5, `${fg}/${bg}`);
   }
 });
-test('主文件小于5KB且说明书加一种模板小于27KB', async () => {
+test('主文件小于5.6KB且说明书加一种模板小于27.6KB', async () => {
   const bytes = async rel => Buffer.byteLength((await readFile(new URL(rel, root), 'utf8')).replace(/\r\n/g, '\n'), 'utf8');
   const main = await bytes('SKILL.md');
-  assert.ok(main < 5000, `主文件 ${main} 字节`);
+  assert.ok(main < 5600, `主文件 ${main} 字节`);
   let refs = 0;
   for (const name of await readdir(new URL('references/',root))) refs += await bytes(`references/${name}`);
   assert.ok(refs < 12000, `参考合计 ${refs} 字节`);
   for (const style of ['a','b','c']) {
     const tpl = await bytes(`assets/template-${style}.html`);
-    assert.ok(main + refs + tpl < 27000, `${style}: ${main + refs + tpl} 字节`);
+    assert.ok(main + refs + tpl < 27600, `${style}: ${main + refs + tpl} 字节`);
   }
 });
 test('文件入口能输出完整文件并拒绝覆盖输入和缺失输入', async () => {

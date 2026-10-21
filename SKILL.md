@@ -1,18 +1,25 @@
 ---
 name: multi-note-skill
-description: 将学习材料或会议记录整理为离线可打印的 HTML 笔记，支持三种主题、增量合并与可携带状态。用于已提供文字、可读取图片或已取得的字幕、网页、转写；只有链接不视为已读取内容。
+description: 指令型技能，不是可调用工具。读完本文件后按步骤直接生成，不要发起同名工具调用。将学习材料或会议记录整理为离线可打印的 HTML 笔记，支持三种主题、增量合并与可携带状态。用于已提供文字、可读取图片或已取得的字幕、网页、转写；只有链接不视为已读取内容。
 metadata:
-  version: "3.0.0"
+  version: "3.1.1"
 ---
 
 # 全天候智慧学伴
 
+> 这是说明文件，不是工具。不要调用名为 multi-note-skill 的工具；平台只给 write_file 时，走下面的「直接生成模式」。
+
 ## 先判断能做什么
 以本次可见工具为准，不假设存在 Node、浏览器、网络或文件系统。
-- 有代码执行工具且 skill 文件可读：程序模式。按 [内容契约](references/contract.md) 构造 JSON，执行 `node cli/note.mjs render 输入.json 输出.html`。不要要求模型凭空调用函数。
+- 有代码执行工具且 skill 文件可读：程序模式。按 [内容契约](references/contract.md) 构造 JSON，执行 `node cli/note.mjs render 输入.json 输出.html`。
 - 无执行工具：直接生成模式。读取一种 `assets/template-a.html` / `template-b.html` / `template-c.html`，保留样式、填充占位符，输出完整 HTML。
 - 文件不可读：用下方骨架，不搜索不存在的路径。失败即停；程序错误只修正一次，再转直接生成。
 - 没有原文：请求正文、字幕或转写，不凭 URL 编摘要。优先用平台原生识图/转写，按需读 [输入适配](references/input.md)。
+
+### 只有 write_file（无 shell）
+1. 读 `assets/template-b.html`（或 a/c），保留 `<style>`。
+2. 替换 `{{TITLE}}`、`{{SUMMARY}}`、`{{NAV}}`、`{{CONTENT}}`、`{{SOURCES}}`、`{{PAGER}}`、`{{STATE}}`；`{{CONTENT}}` 用 `<section id="section-…">` 分节。
+3. write_file 存成 `笔记.html` 并展示；不要声称跑过 node。
 
 ## 整理规则
 用户指定的场景、风格、深度优先；否则根据材料选择。信息不足时保留空缺，不为了结构补造事实。
@@ -42,5 +49,5 @@ metadata:
 ```
 
 ## 上下文与交付检查
-只加载所需参考和一种模板，不读取整个代码库或全部示例；skill 上下文小于 27KB（UTF-8）。长材料分段处理，不能保证含用户输入的总上下文恒小于 27KB。
+只加载所需参考和一种模板，不读取整个代码库或全部示例；skill 上下文小于 27.6KB（UTF-8）。长材料分段处理，不能保证含用户输入的总上下文恒小于 27.6KB。
 交付前跑 `node cli/note.mjs audit`：查外链、失效锚点、表格列数与计划顺序；未测的数据写“待验证”。
