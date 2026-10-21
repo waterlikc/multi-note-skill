@@ -47,7 +47,7 @@ node cli/note.mjs audit [目录]
 | `assets/theme-{a,b,c}.css` | 三套视觉源文件 |
 | `assets/template-*.html` | **生成物**（`tools/build.mjs` 产出），不要手改 |
 | `scripts/*.mjs` | 兼容薄封装 |
-| `tools/` | 仅开发：生成示例与模板，不进安装包 |
+| `tools/` | 开发用：重建模板与示例（可选） |
 | `tests/runtime.test.mjs` | 54 项测试 |
 | `references/` | 契约、状态、输入三份细则 |
 
