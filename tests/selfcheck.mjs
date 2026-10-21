@@ -14,11 +14,12 @@ async function size(rel) { return (await stat(new URL(rel, root))).size; }
 async function list(dir) { return readdir(new URL(dir, root)); }
 
 // 1. 预算
-const skill = await size('SKILL.md');
+const textBytes = async rel => Buffer.byteLength((await readFile(new URL(rel, root), 'utf8')).replace(/\r\n/g, '\n'), 'utf8');
+const skill = await textBytes('SKILL.md');
 let refs = 0;
-for (const f of await readdir(new URL('references/', root))) refs += (await stat(new URL('references/' + f, root))).size;
+for (const f of await readdir(new URL('references/', root))) refs += await textBytes('references/' + f);
 let maxTpl = 0;
-for (const f of await list('assets/')) if (f.startsWith('template-')) maxTpl = Math.max(maxTpl, await size('assets/' + f));
+for (const f of await list('assets/')) if (f.startsWith('template-')) maxTpl = Math.max(maxTpl, await textBytes('assets/' + f));
 add('SKILL.md < 5,000', skill < 5000, skill + ' 字节');
 add('参考 < 12,000', refs < 12000, refs + ' 字节');
 add('单模板 < 10,000', maxTpl < 10000, maxTpl + ' 字节');
