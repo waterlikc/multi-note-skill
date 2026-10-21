@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "note": {
+    "schemaVersion": 1,
+    "id": "project",
+    "revision": 1,
+    "title": "智慧学伴项目：先闭合演示路径",
+    "scene": "project",
+    "style": "style-b",
+    "summary": "用可交付文件证明能力，再记录待接入部分。",
+    "sources": [
+      {
+        "id": "S1",
+        "label": "教学演示材料（人工编写），第1段",
+        "text": "教学演示项目记录：目标是离线学习笔记。当前已设计三种单文件主题和文本输入流程。下一步要核对打印结果、实际平台输出和字幕粘贴路径。外部OCR尚未接入，负责人和日期未提供。"
+      }
+    ],
+    "sections": [
+      {
+        "id": "progress",
+        "heading": "已完成的设计",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "三种单文件主题设计。",
+              "文本输入到结构化笔记的流程设计。"
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "risks",
+        "heading": "待验证与依赖",
+        "blocks": [
+          {
+            "type": "callout",
+            "text": "设计完成不等于平台验收完成。外部 OCR 尚未接入。"
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "next",
+        "heading": "下一步",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "任务",
+              "负责人",
+              "日期"
+            ],
+            "rows": [
+              [
+                "核对打印与平台输出",
+                "未提供",
+                "未提供"
+              ],
+              [
+                "验证字幕粘贴路径",
+                "未提供",
+                "未提供"
+              ]
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      }
+    ]
+  },
+  "graph": {
+    "nodes": [],
+    "edges": []
+  },
+  "history": [
+    {
+      "revision": 1,
+      "summary": "首次整理"
+    }
+  ]
+}

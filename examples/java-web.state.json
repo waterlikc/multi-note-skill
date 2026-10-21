@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "note": {
+    "schemaVersion": 1,
+    "id": "java-web",
+    "revision": 1,
+    "title": "Spring Boot 3 订单接口：从 Controller 到 SQL",
+    "scene": "tech",
+    "style": "style-a",
+    "summary": "一次请求穿过三层：Controller 收参数、Service 管事务、Mapper 绑 SQL；异常在边界统一收口。",
+    "sources": [
+      {
+        "id": "S1",
+        "label": "教学演示材料（人工编写），第1段",
+        "text": "教学演示材料（人工编写）：Spring Boot 3 需要 Java 17 或更高版本。@RestController 的返回值由 Jackson 序列化为 JSON；@Valid 触发 DTO 校验；@Transactional 默认只在 RuntimeException 时回滚；MyBatis 用 @Mapper 扫描接口，#{} 走 PreparedStatement，${} 是字符串拼接。"
+      }
+    ],
+    "sections": [
+      {
+        "id": "api",
+        "heading": "分层：一次请求经过谁",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "接口层只负责协议转换，业务规则留在 Service，SQL 只出现在 Mapper。三层各自可测，改动才不会互相牵连。"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "层",
+              "职责",
+              "关键注解"
+            ],
+            "rows": [
+              [
+                "Controller",
+                "接参数、校验、返回视图",
+                "@RestController · @Valid"
+              ],
+              [
+                "Service",
+                "业务规则、事务边界",
+                "@Service · @Transactional"
+              ],
+              [
+                "Mapper",
+                "SQL 与结果映射",
+                "@Mapper · @Select"
+              ]
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "controller",
+        "heading": "Controller：只接参数、只返结果",
+        "blocks": [
+          {
+            "type": "code",
+            "language": "Java · OrderController",
+            "text": "@RestController\n@RequestMapping(\"/api/orders\")\npublic class OrderController {\n    private final OrderService service;\n    public OrderController(OrderService service) { this.service = service; }\n\n    @GetMapping(\"/{id}\")\n    public OrderView get(@PathVariable long id) {\n        return service.find(id);\n    }\n}"
+          },
+          {
+            "type": "list",
+            "items": [
+              "构造器注入，字段 final，便于测试替换。",
+              "返回对象而不是拼接 JSON 字符串。",
+              "不在 Controller 里写 if 业务判断。"
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "validation",
+        "heading": "DTO 校验：把坏请求挡在门外",
+        "blocks": [
+          {
+            "type": "code",
+            "language": "Java · 请求体与校验",
+            "text": "public record CreateOrderRequest(\n        @NotNull Long userId,\n        @NotEmpty List<@Valid Item> items) {}\n\n@PostMapping\npublic OrderView create(@Valid @RequestBody CreateOrderRequest req) {\n    return service.create(req);\n}"
+          },
+          {
+            "type": "callout",
+            "text": "@Valid 失败默认返回 400，不会进入方法体。400 是请求问题，500 才是服务端问题，排错方向完全不同。"
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "service",
+        "heading": "Service：事务边界画在哪",
+        "blocks": [
+          {
+            "type": "code",
+            "language": "Java · 事务",
+            "text": "@Service\npublic class OrderService {\n    private final OrderMapper mapper;\n    public OrderService(OrderMapper mapper) { this.mapper = mapper; }\n\n    @Transactional(rollbackFor = Exception.class)\n    public OrderView create(CreateOrderRequest req) {\n        long id = mapper.insert(req);\n        return mapper.findById(id);\n    }\n}"
+          },
+          {
+            "type": "callout",
+            "text": "@Transactional 默认只对 RuntimeException 回滚；有受检异常时要显式写 rollbackFor = Exception.class。事务不要包住远程调用。"
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "mapper",
+        "heading": "Mapper：SQL 与参数绑定",
+        "blocks": [
+          {
+            "type": "code",
+            "language": "Java · MyBatis",
+            "text": "@Mapper\npublic interface OrderMapper {\n    @Select(\"select id, user_id, amount from orders where id = #{id}\")\n    OrderRow findById(long id);\n}"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "写法",
+              "编译结果",
+              "风险"
+            ],
+            "rows": [
+              [
+                "#{id}",
+                "PreparedStatement 占位符",
+                "参数被正确处理，推荐"
+              ],
+              [
+                "${id}",
+                "字符串直接拼接",
+                "可能 SQL 注入，禁用"
+              ],
+              [
+                "${columns}",
+                "拼接列名",
+                "只允许白名单常量"
+              ]
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "debug",
+        "heading": "排错顺序：日志 → 参数 → SQL",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "先看异常栈第一行，确认是 4xx 还是 5xx。",
+              "400 先核对请求体字段名与类型。",
+              "5xx 打开 SQL 日志，确认语句与参数。",
+              "用最小请求复现，再逐层加回条件。"
+            ]
+          },
+          {
+            "type": "callout",
+            "text": "不要在 Controller 里 try-catch 吞掉异常；统一异常处理只做转换，不隐藏堆栈。"
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "quiz",
+        "heading": "自测：三个必答",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "1. @Transactional 默认对哪些异常回滚？"
+          },
+          {
+            "type": "paragraph",
+            "text": "答：RuntimeException 及其子类；受检异常需要 rollbackFor = Exception.class。"
+          },
+          {
+            "type": "paragraph",
+            "text": "2. #{} 和 ${} 的区别？"
+          },
+          {
+            "type": "paragraph",
+            "text": "答：#{} 走 PreparedStatement 占位符并处理参数；${} 直接拼接字符串，可能被注入。"
+          },
+          {
+            "type": "paragraph",
+            "text": "3. 接口返回 400 和 500，分别先查什么？"
+          },
+          {
+            "type": "paragraph",
+            "text": "答：400 查参数绑定与校验；500 查服务端异常栈与 SQL。"
+          }
+        ],
+        "origin": "supplement",
+        "sourceIds": []
+      }
+    ]
+  },
+  "graph": {
+    "nodes": [],
+    "edges": []
+  },
+  "history": [
+    {
+      "revision": 1,
+      "summary": "首次整理"
+    }
+  ]
+}

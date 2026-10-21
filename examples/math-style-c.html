@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>一次函数：读懂斜率与截距</title><style>:root{--ink:#2b2b2b;--paper:#fdf9ef;--coral:#e76f51;--teal:#2a9d8f;--mustard:#e9c46a;--hand:KaiTi,STKaiti,"Songti SC",serif}
+*{box-sizing:border-box}
+body{margin:0;background:#efe9dc;color:var(--ink);font:16px/1.85 "Segoe UI","Microsoft YaHei",sans-serif;background-image:radial-gradient(#cfc4ae 1px,transparent 1px);background-size:18px 18px}
+main{max-width:880px;margin:36px auto;padding:54px 58px 40px;background:var(--paper);box-shadow:0 20px 50px rgba(60,45,30,.14);position:relative}
+header{position:relative;padding:4px 0 18px;border-bottom:2px dashed #d9cdb4}
+.eyebrow{display:block;width:max-content;background:var(--mustard);color:#4a3a10;font:600 11px/1 var(--hand);letter-spacing:.22em;padding:7px 13px;transform:rotate(-1.4deg);margin:0 0 14px}
+.version{position:absolute;right:0;top:10px;font:11px/1 var(--hand);color:#8a7d63}
+h1{font:700 clamp(32px,5vw,48px)/1.22 var(--hand);margin:0 0 12px;background:linear-gradient(transparent 68%,rgba(233,196,106,.55) 68% 94%,transparent 94%);display:inline-block;padding:0 4px;text-wrap:balance}
+.lead{font-size:16px;color:#5a5142;max-width:62ch;margin:12px 0 0}
+nav{display:flex;flex-wrap:wrap;gap:6px 12px;padding:14px 0;border-bottom:2px dashed #d9cdb4}
+nav a{font:13px/1 var(--hand);color:#6b5e48;text-decoration:none;border-bottom:1px solid #cbbda1;padding:4px 2px}
+nav a:hover{color:var(--coral);border-color:var(--coral)}
+a{color:var(--teal)}
+section{padding:30px 0 24px;border-bottom:1px dashed #ddd2bb;position:relative}
+h2{font:700 24px/1.4 var(--hand);margin:0 0 14px;position:relative}
+section[data-no] h2{padding-left:46px}
+.sec-no{position:absolute;left:0;top:-6px;width:34px;height:34px;line-height:34px;text-align:center;font:700 15px/34px var(--hand);color:#fff;background:var(--coral);transform:rotate(-6deg);box-shadow:2px 2px 0 rgba(231,111,81,.25)}
+p{margin:11px 0}
+ul,ol{padding-left:22px}li{margin:7px 0}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;background:#fffdf7}
+th,td{border:1px dashed #cfc2a8;padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#f6ecd8;font-family:var(--hand);font-weight:700;font-size:13.5px}
+.callout{position:relative;background:#fff6d8;padding:18px 18px 14px;margin:24px 0;transform:rotate(-.4deg);box-shadow:0 2px 0 #e8dbb5}
+.callout:before{content:"";position:absolute;top:-9px;left:50%;width:66px;height:20px;margin-left:-33px;background:rgba(214,196,140,.45);transform:rotate(1.2deg)}
+figure.code{margin:18px 0;border:1px dashed #cfc2a8;background:#fffdf7}
+figcaption{font:11px/1 var(--hand);letter-spacing:.12em;color:#8a7d63;padding:9px 12px;border-bottom:1px dashed #cfc2a8}
+pre{margin:0;padding:13px 14px;background:#fffdf7;font:13px/1.7 Consolas,"Courier New",monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+ul.criteria{list-style:none;padding-left:0}
+ul.criteria li{position:relative;padding-left:24px;font-size:14.5px}
+ul.criteria li:before{content:"";position:absolute;left:2px;top:5px;width:11px;height:11px;border:1.6px solid var(--teal);background:#fff;transform:rotate(-3deg)}
+.objectives>ul{list-style:none;padding-left:0}
+.objectives>ul>li{padding:14px 0;border-bottom:1px dotted #d8cbb2}
+.objectives>ul>li>strong{display:inline-block;background:var(--teal);color:#fff;font:600 11px/1 var(--hand);letter-spacing:.14em;padding:5px 8px;transform:rotate(-1deg);margin-right:8px}
+.practice tr.wrong td{background:#fdeae4}
+.practice tr.simulated{color:#8a7d63}
+.sources{list-style:none;padding:0}
+.sources li{background:#fffdf7;border:1px dashed #cfc2a8;padding:11px 14px;margin:10px 0}
+.sources li strong{font:700 12.5px/1 var(--hand);color:var(--coral)}
+.sources blockquote{margin:6px 0 0;font-size:14px;color:#5a5142;border:0;padding:0}
+.source{font:12.5px/1.7 var(--hand);color:#8a7d63}
+.mindmap{text-align:center}
+.mindmap figcaption{font:12px/1.7 var(--hand);color:#8a7d63;background:none;border:0;padding:8px 0 0}
+.portable-state pre{max-height:320px;overflow:auto;border:1px dashed #cfc2a8;padding:14px;background:#fffdf7}
+.footer{margin:32px 0 0;padding-top:14px;border-top:2px dashed #d9cdb4;font:11.5px/1.6 var(--hand);letter-spacing:.1em;color:#8a7d63;text-align:center}
+@media(max-width:600px){main{margin:0;padding:26px 18px}section[data-no] h2{padding-left:0}.sec-no{position:static;display:inline-block;margin:0 8px 8px 0}h1{font-size:30px}.version{display:none}}
+@media print{@page{size:A4;margin:15mm}body{background:#fff}main{max-width:none;margin:0;padding:0;box-shadow:none}nav,.portable-state,.footer{display:none}section{border-bottom:.5pt dashed #ddd;padding:13pt 0}h2{break-after:avoid}.callout{transform:none;box-shadow:none}thead{display:table-header-group}tr{break-inside:avoid}a{color:inherit;text-decoration:none}pre{overflow:visible;max-height:none;font-size:9pt}}</style></head>
+<body><main><header><span class="version">学习笔记 · v1</span><p class="eyebrow">课堂学习</p><h1>一次函数：读懂斜率与截距</h1><p class="lead">先看变化率，再看起点；把公式、图像和实际含义对应起来。</p></header><nav aria-label="章节导航"><a href="#section-concept">斜率与截距</a><a href="#section-example">例题：y=2x+1</a><a href="#section-quiz">自测与答案</a></nav><section id="section-concept" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>斜率与截距</h2><table><thead><tr><th scope="col">符号</th><th scope="col">含义</th><th scope="col">读图方法</th></tr></thead><tbody><tr><td>k</td><td>Δy/Δx（Δx≠0）</td><td>横坐标增加1时纵坐标的变化量</td></tr><tr><td>b</td><td>y 轴截距</td><td>令 x=0，得到 y=b</td></tr></tbody></table>
+<aside class="callout"><strong>提示</strong><p>一次函数要求 k≠0；“截距”是带符号的数，不等于距离。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p></section>
+<section id="section-example" data-no="02"><p class="eyebrow">来源材料</p><h2><span class="sec-no">02</span>例题：y=2x+1</h2><ul><li>当 x=1，y=3；当 x=3，y=7。</li><li>Δx=2，Δy=4，所以 k=4/2=2。</li><li>当 x=0，y=1，所以 b=1。</li></ul><p class="source">依据：<a href="#source-S1">[S1]</a></p></section>
+<section id="section-quiz" data-no="03"><p class="eyebrow">补充解释</p><h2><span class="sec-no">03</span>自测与答案</h2><p>对于 y=−3x+2，判断随 x 增大时 y 如何变化，并求 y 轴截距。</p>
+<p>答案：y 减小；y 轴截距是2。理由：k=−3&lt;0，b=2。</p><p class="source">补充解释，不是原文摘录</p></section><section><h2>原始材料与来源</h2><ol class="sources"><li id="source-S1"><strong>[S1] 教学演示材料（人工编写），第1段</strong><blockquote>一次函数 y=kx+b，k≠0。k 是斜率，b 是直线与 y 轴交点的纵坐标。当 k&gt;0 时，y 随 x 增大而增大；k&lt;0 时则减小。例：y=2x+1，x 从1增加到3，y 从3增加到7。</blockquote></li></ol></section><p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p></main></body></html>

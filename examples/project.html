@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>智慧学伴项目：先闭合演示路径</title><style>:root{--ink:#12324a;--paper:#f6f9fa;--line:#b7d2dc;--accent:#0e7c8a;--mono:Consolas,"Courier New",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:#e4ebef;color:var(--ink);font:16px/1.8 "Segoe UI","Microsoft YaHei",sans-serif;background-image:repeating-linear-gradient(0deg,transparent 0 23px,rgba(18,50,74,.05) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,rgba(18,50,74,.05) 23px 24px)}
+main{max-width:900px;margin:36px auto;padding:44px 52px 34px;background:var(--paper);border:1px solid var(--line);position:relative}
+main:before{content:"";position:absolute;left:-1px;top:-1px;width:18px;height:18px;border-left:3px solid var(--accent);border-top:3px solid var(--accent)}
+main:after{content:"";position:absolute;right:-1px;bottom:-1px;width:18px;height:18px;border-right:3px solid var(--accent);border-bottom:3px solid var(--accent)}
+header{padding-bottom:16px;border-bottom:2px solid var(--ink);position:relative}
+.eyebrow{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:6px 10px;margin:0 0 16px}
+h1{font:700 clamp(30px,4.4vw,44px)/1.25 "Segoe UI","Microsoft YaHei",sans-serif;margin:0 0 10px;letter-spacing:-.01em;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.lead{font-size:16px;color:#3c5566;max-width:64ch;margin:0}
+nav{display:flex;flex-wrap:wrap;gap:4px 16px;padding:12px 0;border-bottom:1px dashed var(--line);font:12px/1.6 var(--mono)}
+nav a{color:var(--ink);text-decoration:none}
+a{color:var(--accent)}
+section{padding:30px 0 26px;border-bottom:1px dashed var(--line);position:relative;scroll-margin-top:16px}
+section[data-no]:before{content:"SEC " attr(data-no);position:absolute;right:0;top:6px;font:10px/1 var(--mono);letter-spacing:.2em;color:var(--accent);padding-bottom:3px;border-bottom:1px solid var(--accent)}
+h2{font:700 21px/1.5 "Segoe UI","Microsoft YaHei",sans-serif;margin:0 0 12px}
+.sec-no{display:none}
+p{margin:11px 0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:#fff}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#eaf2f5;font:600 10.5px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.callout{border:1px dashed var(--accent);background:#eef7f8;padding:16px 16px 12px;margin:20px 0;position:relative;font-size:15px}
+.callout:before{content:"NOTE";position:absolute;top:-8px;left:14px;background:var(--paper);padding:0 6px;font:10px/1 var(--mono);letter-spacing:.22em;color:var(--accent)}
+figure.code{margin:18px 0;border:1px solid var(--line);background:#fff}
+figcaption{font:10.5px/1 var(--mono);letter-spacing:.16em;color:var(--accent);padding:9px 12px;border-bottom:1px dashed var(--line);background:#f0f6f8}
+pre{margin:0;padding:13px 14px;background:#fff;font:13px/1.7 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;color:#1b3a52}
+ul.criteria{list-style:none;padding-left:0}
+ul.criteria li{position:relative;padding-left:22px;font-size:14.5px}
+ul.criteria li:before{content:"";position:absolute;left:2px;top:6px;width:9px;height:9px;border:1.5px solid var(--accent);background:#fff}
+.objectives>ul{list-style:none;padding-left:0}
+.objectives>ul>li{padding:14px 0;border-bottom:1px dashed var(--line)}
+.objectives>ul>li>strong{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--accent);padding:4px 7px;margin-right:9px}
+.practice tr.wrong td{background:#fdf1ef}
+.practice tr.simulated{color:#6b7f8c}
+.sources{list-style:none;padding:0}
+.sources li{border-left:2px solid var(--accent);padding:10px 14px;margin:10px 0;background:#fff}
+.sources li strong{font:600 11px/1 var(--mono);letter-spacing:.1em;color:var(--accent)}
+.sources blockquote{margin:6px 0 0;font-size:14px;color:#3c5566;border:0;padding:0}
+.source{font:12px/1.7 var(--mono);color:#5b7283}
+.mindmap{text-align:center}
+.mindmap figcaption{font:11.5px/1.7 var(--mono);color:#5b7283;background:none;border:0;padding:8px 0 0}
+.portable-state pre{max-height:320px;overflow:auto;background:#fff;border:1px solid var(--line);padding:14px}
+.footer{margin:30px 0 0;padding-top:12px;border-top:1px dashed var(--line);font:10.5px/1.6 var(--mono);color:#5b7283;text-align:center}
+@media(max-width:600px){main{margin:0;padding:26px 18px;box-shadow:none}section[data-no]:before{display:none}h1{font-size:27px}nav{gap:4px 10px}}
+.pager{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:5px;z-index:9}
+.pager a{display:flex;align-items:center;justify-content:center;width:30px;height:30px;font:600 12px/1 var(--mono);color:var(--accent);text-decoration:none;background:var(--paper);border:1px solid var(--line)}
+.pager a:hover{background:var(--accent);color:#fff}
+.pager .pager-top{background:var(--ink);color:#fff;border-color:var(--ink)}
+.next-link{margin:18px 0 0;text-align:right;font:12px/1.6 var(--mono)}
+.next-link a{color:#5b7283;text-decoration:none}
+.next-link a:hover{color:var(--accent)}
+@media(max-width:600px){.pager{right:10px;bottom:10px;gap:4px}.pager a{width:26px;height:26px;font-size:11px}}
+nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid currentColor;border-radius:2px;font-size:11.5px;text-decoration:none}
+@media print{.pager,.next-link{display:none}@page{size:A4;margin:15mm}body{background:#fff}main{max-width:none;margin:0;padding:0;border:0;box-shadow:none}main:before,main:after{display:none}nav,.portable-state,.footer{display:none}section{border-bottom:.5pt dashed #ccc;padding:13pt 0}section[data-no]:before{display:none}h2{break-after:avoid}thead{display:table-header-group}tr{break-inside:avoid}a{color:inherit;text-decoration:none}pre{overflow:visible;max-height:none;font-size:9pt}}
+.night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
+.night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
+.night-toggle-label:before{content:"◐ 夜间"}
+.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
+@media print{.night-toggle,.night-toggle-label{display:none}}
+
+body{padding-top:48px}
+.topbar{position:fixed;inset:0 0 auto 0;height:48px;display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--ink);color:#fff;z-index:30;font:600 12.5px/1 "Segoe UI","Microsoft YaHei",sans-serif;letter-spacing:.05em}
+.topbar .tb-title{font-weight:700}
+.topbar .tb-meta{opacity:.62;font-weight:400;letter-spacing:.02em}
+.topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.topbar .night-toggle-label:before{color:inherit}
+@media print{.topbar{display:none}body{padding-top:0}}
+html:has(#night:checked) body{background:#0a141c;color:#cfe2ea;background-image:none}
+html:has(#night:checked) main{background:#0f1e2a;border-color:#24404f;box-shadow:none}
+html:has(#night:checked) header{border-color:#24404f}
+html:has(#night:checked) h1,html:has(#night:checked) h2{color:#e6f2f8}
+html:has(#night:checked) p,html:has(#night:checked) li,html:has(#night:checked) td,html:has(#night:checked) th,html:has(#night:checked) .lead{color:#cfe2ea}
+html:has(#night:checked) th{background:#16303d}
+html:has(#night:checked) table,html:has(#night:checked) pre,html:has(#night:checked) figure.code,html:has(#night:checked) .sources li,html:has(#night:checked) .mindmap figure{background:#122836;border-color:#24404f}
+html:has(#night:checked) pre{color:#d6e6ee}
+html:has(#night:checked) figcaption{background:#16303d;color:#8fb0bf;border-color:#24404f}
+html:has(#night:checked) .callout{background:#122836}
+html:has(#night:checked) a{color:#5fc2cf}
+html:has(#night:checked) .source,html:has(#night:checked) nav a,html:has(#night:checked) .next-link a{color:#8fb0bf}
+html:has(#night:checked) .sources blockquote{color:#cfe2ea}
+html:has(#night:checked) .night-toggle-label{background:#122836;color:#cfe2ea;border-color:#24404f}
+html:has(#night:checked) .topbar{background:#070d12}
+html:has(#night:checked) .pager a{background:#122836;color:#cfe2ea;border-color:#24404f}
+
+html:has(#night:checked) section[data-no]:before{color:#5fc2cf;border-color:#5fc2cf}
+</style></head>
+<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">项目报告</p><h1>智慧学伴项目：先闭合演示路径</h1><p class="lead">用可交付文件证明能力，再记录待接入部分。</p></header><nav aria-label="章节导航"><a href="#section-progress">已完成的设计</a><a href="#section-risks">待验证与依赖</a><a href="#section-next">下一步</a></nav><section id="section-progress" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>已完成的设计</h2><ul><li>三种单文件主题设计。</li><li>文本输入到结构化笔记的流程设计。</li></ul><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-risks">下一节：待验证与依赖 →</a></p></section>
+<section id="section-risks" data-no="02"><p class="eyebrow">来源材料</p><h2><span class="sec-no">02</span>待验证与依赖</h2><aside class="callout"><strong>提示</strong><p>设计完成不等于平台验收完成。外部 OCR 尚未接入。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-next">下一节：下一步 →</a></p></section>
+<section id="section-next" data-no="03"><p class="eyebrow">来源材料</p><h2><span class="sec-no">03</span>下一步</h2><table><thead><tr><th scope="col">任务</th><th scope="col">负责人</th><th scope="col">日期</th></tr></thead><tbody><tr><td>核对打印与平台输出</td><td>未提供</td><td>未提供</td></tr><tr><td>验证字幕粘贴路径</td><td>未提供</td><td>未提供</td></tr></tbody></table><p class="source">依据：<a href="#source-S1">[S1]</a></p></section><section><h2>原始材料与来源</h2><ol class="sources"><li id="source-S1"><strong>[S1] 教学演示材料（人工编写），第1段</strong><blockquote>教学演示项目记录：目标是离线学习笔记。当前已设计三种单文件主题和文本输入流程。下一步要核对打印结果、实际平台输出和字幕粘贴路径。外部OCR尚未接入，负责人和日期未提供。</blockquote></li></ol></section><section class="mindmap" id="outline"><h2>结构一览</h2><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 774 90" width="774" height="90" role="img" aria-label="章节结构图：3 节" style="max-width:100%;height:auto"><g><a href="#section-progress"><rect x="12" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="24" y="35" font-size="11" fill="#7a8895">01</text><text x="24" y="58" font-size="14" font-weight="600" fill="#202c36">已完成的设计</text></a><title>已完成的设计</title></g><polygon points="197,45 189,41 189,49" fill="#9db0c0"/><g><a href="#section-risks"><rect x="206" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="218" y="35" font-size="11" fill="#7a8895">02</text><text x="218" y="58" font-size="14" font-weight="600" fill="#202c36">待验证与依赖</text></a><title>待验证与依赖</title></g><polygon points="391,45 383,41 383,49" fill="#9db0c0"/><g><a href="#section-next"><rect x="400" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="412" y="35" font-size="11" fill="#7a8895">03</text><text x="412" y="58" font-size="14" font-weight="600" fill="#202c36">下一步</text></a><title>下一步</title></g></svg><figcaption>按章节顺序从左到右、从上到下阅读；点击卡片跳到对应章节。</figcaption></figure></section><section class="portable-state"><h2>继续学习</h2><p>保存本文件，或复制以下 JSON。下次对话提供旧文件或 JSON 后，可继续更新；此处没有云端存储。</p><p>版本 1 · 首次整理</p><pre id="note-state">{
+  &quot;schemaVersion&quot;: 1,
+  &quot;note&quot;: {
+    &quot;schemaVersion&quot;: 1,
+    &quot;id&quot;: &quot;project&quot;,
+    &quot;revision&quot;: 1,
+    &quot;title&quot;: &quot;智慧学伴项目：先闭合演示路径&quot;,
+    &quot;scene&quot;: &quot;project&quot;,
+    &quot;style&quot;: &quot;style-b&quot;,
+    &quot;summary&quot;: &quot;用可交付文件证明能力，再记录待接入部分。&quot;,
+    &quot;sources&quot;: [
+      {
+        &quot;id&quot;: &quot;S1&quot;,
+        &quot;label&quot;: &quot;教学演示材料（人工编写），第1段&quot;,
+        &quot;text&quot;: &quot;教学演示项目记录：目标是离线学习笔记。当前已设计三种单文件主题和文本输入流程。下一步要核对打印结果、实际平台输出和字幕粘贴路径。外部OCR尚未接入，负责人和日期未提供。&quot;
+      }
+    ],
+    &quot;sections&quot;: [
+      {
+        &quot;id&quot;: &quot;progress&quot;,
+        &quot;heading&quot;: &quot;已完成的设计&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;list&quot;,
+            &quot;items&quot;: [
+              &quot;三种单文件主题设计。&quot;,
+              &quot;文本输入到结构化笔记的流程设计。&quot;
+            ]
+          }
+        ],
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;risks&quot;,
+        &quot;heading&quot;: &quot;待验证与依赖&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;callout&quot;,
+            &quot;text&quot;: &quot;设计完成不等于平台验收完成。外部 OCR 尚未接入。&quot;
+          }
+        ],
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;next&quot;,
+        &quot;heading&quot;: &quot;下一步&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;table&quot;,
+            &quot;headers&quot;: [
+              &quot;任务&quot;,
+              &quot;负责人&quot;,
+              &quot;日期&quot;
+            ],
+            &quot;rows&quot;: [
+              [
+                &quot;核对打印与平台输出&quot;,
+                &quot;未提供&quot;,
+                &quot;未提供&quot;
+              ],
+              [
+                &quot;验证字幕粘贴路径&quot;,
+                &quot;未提供&quot;,
+                &quot;未提供&quot;
+              ]
+            ]
+          }
+        ],
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      }
+    ]
+  },
+  &quot;graph&quot;: {
+    &quot;nodes&quot;: [],
+    &quot;edges&quot;: []
+  },
+  &quot;history&quot;: [
+    {
+      &quot;revision&quot;: 1,
+      &quot;summary&quot;: &quot;首次整理&quot;
+    }
+  ]
+}</pre></section><p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p></main></body></html>

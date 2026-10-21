@@ -1,262 +1,102 @@
-<div align="center">
+# multi-note-skill 3.1
 
-# multi-note-skill
+把学习材料或会议记录整理成**单文件、离线、可打印**的 HTML 笔记，并保留可携带的学习状态（目标、作答、掌握度、复习节奏）。
 
-> *多场景智能笔记生成器 - 支持图片、视频、音频、网页URL多模态输入*
+零第三方依赖，Node ≥ 20。
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Version: 2.0.0](https://img.shields.io/badge/Version-2.0.0-brightgreen)](SKILL.md)
+## 安装
 
-根据用户内容自动识别场景，支持多模态输入，生成精美HTML笔记，支持打印复习。
+```powershell
+git clone https://github.com/waterlikc/multi-note-skill.git
+cd multi-note-skill
+node cli/note.mjs --help
+```
 
-[快速开始](#快速开始) · [🆕 多模态支持](#多模态支持) · [场景支持](#场景支持) · [模板样式](#模板样式) · [组件系统](#组件系统)
-
-</div>
-
----
+零依赖，不需要 `npm install`；Node ≥ 20。
 
 ## 快速开始
 
-### 基础使用
-
-```
-用户：帮我生成笔记，主题是"Python并发编程"
-AI：[自动识别为技术教学场景，生成精美HTML笔记]
-```
-
-### 🆕 多模态输入
-
-```
-用户：[发送图片] 帮我整理这张PPT的笔记
-AI：[OCR识别图片文字，生成结构化笔记]
-
-用户：把这个视频做成笔记 https://www.youtube.com/watch?v=xxx
-AI：[提取视频字幕，整理成笔记]
-
-用户：帮我整理这篇博客 https://blog.example.com/article
-AI：[提取网页内容，生成读书笔记]
+```powershell
+node cli/note.mjs --help
+node cli/note.mjs render 笔记.json 笔记.html [状态.json]
+node cli/note.mjs update 旧状态.json 更新.json 新状态.json
+node cli/note.mjs cards 笔记.json 卡片.csv
+node cli/note.mjs plan 状态.json 计划.html --days 7 --start 2026-10-21
+node cli/note.mjs audit [目录]
 ```
 
-### 指定场景
+退出码：`0` 成功 / `1` 输入或校验错误 / `2` 合并冲突（不写新文件）。
 
-```
-用户：生成课堂笔记，标题"高中物理电磁学"
-AI：[识别为课堂学习场景，生成学习笔记]
-```
+旧入口 `node scripts/render.mjs …` 仍可用，参数不变（薄封装，内部调用同一套实现）。
 
-### 指定模板
+## 目录结构
 
-```
-用户：用Style B模板生成会议笔记
-AI：[使用皮革手账本样式，生成翻页式笔记]
-```
+| 路径 | 作用 |
+|---|---|
+| `SKILL.md` | 模型入口：判路径、场景默认、输出红线 |
+| `index.mjs` | 公开 API 门面，re-export `src/render/note.mjs` |
+| `src/contract.mjs` | 内容契约与校验 |
+| `src/state.mjs` | 状态、合并、冲突 |
+| `src/input.mjs` | 输入适配（图片/视频/网页/音频/文本） |
+| `src/render/note.mjs` | 组装 HTML：章节、表格、代码、目标、自测、结构图 |
+| `src/render/file.mjs` | 原子写文件（临时文件 + rename） |
+| `src/export/cards.mjs` | Anki CSV 导出 |
+| `src/export/plan.mjs` | N 天计划与复习排期 |
+| `src/audit.mjs` | 产物审计：外链、锚点、表格、计划顺序 |
+| `cli/note.mjs` | 唯一命令行入口 |
+| `assets/theme-{a,b,c}.css` | 三套视觉源文件 |
+| `assets/template-*.html` | **生成物**（`tools/build.mjs` 产出），不要手改 |
+| `scripts/*.mjs` | 兼容薄封装 |
+| `tools/` | 仅开发：生成示例与模板，不进安装包 |
+| `tests/runtime.test.mjs` | 54 项测试 |
+| `references/` | 契约、状态、输入三份细则 |
 
----
+## 来源引用
 
-## 🆕 多模态支持
+`sources[].url` 可选，渲染为来源后的「原文」链接；审计只允许来源区出现 https 外链，正文其他位置与外链图片仍会被拦下。只给**实际读过**的页面加链接，补充内容用 `origin: supplement` 标出。
 
-### 支持的输入类型
+## 设计约束
 
-| 类型 | 格式 | 来源 |
-|------|------|------|
-| **图片** | JPG, PNG, GIF, BMP, WebP, SVG | 本地文件、URL、Base64 |
-| **视频** | MP4, AVI, MOV, MKV, WebM | YouTube、Bilibili、本地文件 |
-| **音频** | MP3, WAV, OGG, M4A, AAC, FLAC | 本地文件、URL |
-| **网页** | HTML | 任何URL |
+- **单文件**：CSS 内联、SVG 内联，无脚本、无外链、无 CDN；断网可直接打开。
+- **可打印**：A4 打印保留正文与答案，隐藏导航、翻页器与状态块。
+- **可携带状态**：完整状态 JSON 转义后放进 `pre#note-state`，新会话复制即可续学。
+- **上下文预算**：SKILL.md < 5,000 字节；参考 < 12,000；单模板 < 10,000；合计 < 27,000。
+- **诚实边界**：演示作答（`simulated: true`）不计入掌握；没有证据时 mastery 只能是 `unknown`。
 
-### 使用示例
+## 视觉
 
-#### 图片 → 笔记
-```javascript
-import { generateNoteFromImage } from 'multi-note-skill'
+三套主题，可用一句话切换（详见 `references/contract.md` 的“排版触发词”）：
 
-const result = await generateNoteFromImage('D:\\Screenshots\\lecture.png', {
-  title: '课堂PPT笔记'
-})
-```
+- **A 杂志排版**：宋体大标题、页边红色章节号、引文式提示
+- **B 工程蓝图**：网格纸、角标、SEC 编号、NOTE 虚线框
+- **C 手账拼贴**：手写标题、荧光笔、珊瑚贴纸、便签
 
-#### 视频 → 笔记
-```javascript
-import { generateNoteFromVideo } from 'multi-note-skill'
+## 统一版面
 
-const result = await generateNoteFromVideo('https://www.youtube.com/watch?v=xxx', {
-  title: '视频教程笔记'
-})
-```
+所有主题共用同一套外框：固定顶栏（标题 + 版本 + 夜间开关）、内容区 900px、右下角章节翻页；打印隐藏顶栏与开关。切换主题不再改变页面宽度。
 
-#### 网页 → 笔记
-```javascript
-import { generateNoteFromUrl } from 'multi-note-skill'
+## 交互版（可选）
 
-const result = await generateNoteFromUrl('https://blog.example.com/article', {
-  title: '博客文章笔记'
-})
-```
+`node cli/note.mjs render 笔记.json 输出.html --interactive`：内联三套主题 CSS，右上角切换杂志/蓝图/手账，右下角翻页；文件含脚本，仅用于演示与答辩。默认导出仍是单主题、无脚本版本。
 
-#### 批量处理
-```javascript
-import { processMultimodalBatch } from 'multi-note-skill'
+## 深色模式与输入边界
 
-const results = await processMultimodalBatch([
-  'image1.png',
-  'image2.jpg',
-  'https://www.youtube.com/watch?v=xxx'
-])
-```
+- 右上角顶栏「◐ 夜间」按钮手动切换（纯 CSS checkbox，无脚本）；默认浅色，打印隐藏开关且始终浅色。
+- 只有链接不算已读；识别置信度 < 0.8 会先请求核对；单次材料 > 200,000 字符会要求拆分。
 
-### 安装多模态依赖
+## 测试与验收
 
-```bash
-# 安装所有多模态依赖
-npm install tesseract.js youtube-transcript cheerio
-
-# 或者单独安装
-npm install tesseract.js        # 图片OCR
-npm install youtube-transcript  # YouTube字幕
-npm install cheerio             # 网页解析
+```powershell
+node tests/runtime.test.mjs      # 47 项
+node cli/note.mjs audit          # 示例产物审计
 ```
 
-### 检查依赖状态
-```javascript
-import { checkMultimodalDependencies } from 'multi-note-skill'
+## 已知边界
 
-const deps = await checkMultimodalDependencies()
-console.log(deps)
-// {
-//   tesseract: true,      // 图片OCR
-//   youtubeTranscript: true, // YouTube字幕
-//   whisper: false,       // 音频转文字（可选）
-//   cheerio: true         // 网页解析
-// }
-```
+- 摘要只收字符串，算不了文件哈希（契约决定）。
+- 翻页器是章节跳转，不是真正分页；真分页需要脚本或多文件。
+- 测试仍是单文件；`src/render/note.mjs` 尚未拆分成 blocks/diagrams 模块。
 
----
+## 许可
 
-## 场景支持
-
-| 场景 | 触发特征 | 默认结构 |
-|------|----------|----------|
-| 技术教学 | 代码、编程、API、框架 | 概念→语法→示例→实践→总结 |
-| 课堂学习 | 知识点、定义、定理、公式 | 框架→概念→重点→易错→总结 |
-| 科普教育 | 原理、现象、实验、科学 | 现象→原理→应用→思考→总结 |
-| 学术会议 | 议题、观点、决策、研讨 | 议程→要点→讨论→决策→总结 |
-| 调研分析 | 问卷、数据、统计、结论 | 背景→方法→发现→结论→建议 |
-| 🆕 图片笔记 | 截图、PPT、白板、手写 | 内容提取→整理→总结 |
-| 🆕 视频笔记 | 教程、讲座、演示 | 概要→分段→重点→总结 |
-| 🆕 网页笔记 | 博客、文章、文档 | 摘要→结构→内容→思考 |
-
----
-
-## 模板样式
-
-### Style A - 教学笔记本
-
-- 螺旋装订效果
-- 横线纸张背景
-- 手写体字体
-- 适合：课堂学习、科普教育、技术教学
-
-### Style B - 手账皮革本
-
-- 皮革封面效果
-- 翻页交互（键盘←→ / 点击）
-- 分页式内容
-- 适合：学术会议、调研分析、正式报告
-
-### Style C - 简约现代
-
-- 渐变头部
-- 卡片式布局
-- 适合：技术文档、专业报告
-
----
-
-## 组件系统
-
-### 文字样式
-`highlight` · `highlight-pink` · `highlight-green` · `highlight-orange` · `red-text` · `blue-text` · `code-term` · `badge`
-
-### 布局组件
-`flow-box` · `compare-box` · `step-list` · `os-grid` · `trust-triangle`
-
-### 信息框
-`question-box` · `summary-box` · `big-warning` · `urgent-box` · `safe-box` · `fix-box` · `config-box`
-
-### 辅助元素
-`side-note` · `divider` · `version-badge` · `code-block` · `doodle`
-
----
-
-## 文件结构
-
-```
-multi-note-skill/
-├── SKILL.md                         # 技能配置文件（含多模态说明）
-├── README.md                        # 项目说明
-├── package.json                     # 依赖配置（scripts: test/build）
-├── index.js                         # 公共入口（多模态API）
-├── core/                            # 核心模块（23个）
-│   ├── smart-note-generator.js      # 主控制器（集成多模态/增量更新/知识图谱）
-│   ├── export-manager.js            # 统一导出（HTML/Markdown/JSON/PDF说明）
-│   ├── multimodal-processor.js      # 多模态处理器
-│   ├── scene-detector.js            # 场景检测器
-│   ├── template-manager.js          # 模板管理器（Style A/B/C）
-│   └── ...                          # 学科识别/复杂度/知识点/增量更新等
-├── assets/                          # 模板资源
-│   ├── template-a.html              # Style A 学霸笔记本
-│   ├── template-b.html              # Style B 手账皮革本
-│   ├── template-c.html              # Style C 简约现代
-│   └── styles.css                   # 公共样式
-├── references/                      # 组件/布局/质量清单
-├── docs/                            # 技术文档/比赛文档/开发规划
-├── demo/                            # 演示脚本（run-all.js）
-├── examples/                        # 示例笔记与多模态示例
-├── tests/                           # 测试辅助文件
-├── test-*.js                        # 根目录测试套件（npm test 使用）
-├── build-skill.js                   # 打包脚本
-└── dist/                            # 构建产物（multi-note-skill.zip）
-```
-
----
-
-## 质量检查
-
-生成笔记后检查：
-
-**P0 必须通过**：
-- `<title>` 已替换为笔记标题
-- HTML文件可正常打开
-- 没有使用emoji作为图标
-
-**P1 强烈建议**：
-- 动画延迟递增
-- 便签不遮挡正文
-- 装饰元素适度
-
-**🆕 P2 多模态相关**：
-- OCR识别文字已清理格式
-- 视频字幕已分段整理
-- 图片链接可正常访问
-- 网页内容已提取正文
-
-详见 [references/checklist.md](references/checklist.md)
-
----
-
-## 依赖说明
-
-### 核心依赖（必需）
-无需额外依赖，基础功能开箱即用。
-
-### 🆕 多模态依赖（可选）
-
-| 功能 | 依赖包 | 安装命令 |
-|------|--------|----------|
-| 图片OCR | tesseract.js | `npm install tesseract.js` |
-| YouTube字幕 | youtube-transcript | `npm install youtube-transcript` |
-| 网页解析 | cheerio | `npm install cheerio` |
-
----
-
-## 开源协议
-
-[MIT License](LICENSE)
+MIT，见 [LICENSE](LICENSE)。

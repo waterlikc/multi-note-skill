@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "note": {
+    "schemaVersion": 1,
+    "id": "meeting",
+    "revision": 1,
+    "title": "课程项目会议：把讨论变成行动",
+    "scene": "meeting",
+    "style": "style-b",
+    "summary": "确定演示范围，记录责任归属，把未决事项留在明处。",
+    "sources": [
+      {
+        "id": "S1",
+        "label": "教学演示材料（人工编写），第1段",
+        "text": "10月12日项目会：小林负责整理数学示例，10月15日前交付；小周负责离线打印检查，10月16日前交付。大家同意演示先展示输入与笔记对照，再展示增量更新。音频转写是否接入仍需确认，预算未提供。"
+      }
+    ],
+    "sections": [
+      {
+        "id": "decision",
+        "heading": "已确认的决议",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "先展示原始材料与笔记对照，再展示增量更新。演示只使用已验证路径。"
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "actions",
+        "heading": "行动清单",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "行动",
+              "负责人",
+              "截止时间"
+            ],
+            "rows": [
+              [
+                "整理数学示例",
+                "小林",
+                "10月15日（年份未提供）"
+              ],
+              [
+                "离线打印检查",
+                "小周",
+                "10月16日（年份未提供）"
+              ]
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "open",
+        "heading": "待确认事项",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "音频转写接入方案尚未确定。",
+              "预算未提供；不要在会议纪要中补造金额。"
+            ]
+          }
+        ],
+        "origin": "uncertain",
+        "sourceIds": [
+          "S1"
+        ]
+      }
+    ]
+  },
+  "graph": {
+    "nodes": [],
+    "edges": []
+  },
+  "history": [
+    {
+      "revision": 1,
+      "summary": "首次整理"
+    }
+  ]
+}

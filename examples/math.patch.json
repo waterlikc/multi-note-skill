@@ -1,0 +1,28 @@
+{
+  "baseRevision": 1,
+  "summary": "补充两点求斜率，原有概念与例题保留",
+  "replaceIds": [],
+  "sources": [
+    {
+      "id": "S2",
+      "label": "教学演示补充材料，第1段",
+      "text": "直线经过(1,3)和(3,7)，斜率 k=(7−3)/(3−1)=2。两点横坐标相同不能用该式求有限斜率。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "two-points",
+      "heading": "增量补充：两点求斜率",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "k=(y₂−y₁)/(x₂−x₁)，要求 x₂≠x₁。本例 k=(7−3)/(3−1)=2。"
+        }
+      ],
+      "origin": "source",
+      "sourceIds": [
+        "S2"
+      ]
+    }
+  ]
+}

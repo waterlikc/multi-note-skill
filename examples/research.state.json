@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "note": {
+    "schemaVersion": 1,
+    "id": "research",
+    "revision": 1,
+    "title": "班级阅读问卷：描述结果与局限",
+    "scene": "research",
+    "style": "style-c",
+    "summary": "报告已有样本，不把便利抽样当作全体学生结论。",
+    "sources": [
+      {
+        "id": "S1",
+        "label": "教学演示材料（人工编写），第1段",
+        "text": "某班自愿问卷收到20份有效回答，其中12人表示一周课外阅读至少3次，8人少于3次。问卷只覆盖一个班，未记录未回答者情况，也未核实自报频率。"
+      }
+    ],
+    "sections": [
+      {
+        "id": "results",
+        "heading": "描述性结果",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "自报频率",
+              "人数",
+              "样本占比"
+            ],
+            "rows": [
+              [
+                "每周至少3次",
+                "12",
+                "60%"
+              ],
+              [
+                "每周少于3次",
+                "8",
+                "40%"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "占比按有效回答20份计算。"
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "limits",
+        "heading": "局限与后续建议",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "仅为单班自愿样本，不能代表其他班级。",
+              "未回答者情况未知，自报频率未经核实。"
+            ]
+          }
+        ],
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ]
+      },
+      {
+        "id": "next",
+        "heading": "改进建议",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "后续可以补充调查范围、回收率和问题措辞，再讨论推广范围。"
+          }
+        ],
+        "origin": "supplement",
+        "sourceIds": []
+      }
+    ]
+  },
+  "graph": {
+    "nodes": [],
+    "edges": []
+  },
+  "history": [
+    {
+      "revision": 1,
+      "summary": "首次整理"
+    }
+  ]
+}

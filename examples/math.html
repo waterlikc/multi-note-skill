@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>一次函数：读懂斜率与截距</title><style>:root{--ink:#141210;--paper:#fffdf8;--accent:#b8382a;--muted:#6f665c;--rule:#e3dccf;--display:"Songti SC",STSong,Georgia,serif;--sans:"Segoe UI","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#efece6;color:var(--ink);font:17px/1.85 var(--sans)}
+main{max-width:860px;margin:40px auto;padding:62px 72px 46px;background:var(--paper);box-shadow:0 24px 60px rgba(20,18,16,.09);position:relative}
+header{padding-bottom:26px;border-bottom:3px double var(--ink);position:relative}
+.eyebrow{display:block;font:600 11px/1 var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin:0 0 20px}
+.version{position:absolute;right:0;top:2px;font-size:11px;letter-spacing:.14em;color:var(--muted)}
+h1{font:700 clamp(34px,5.2vw,52px)/1.16 var(--display);letter-spacing:-.015em;margin:0 0 16px;text-wrap:balance}
+.lead{font:18px/1.85 var(--display);color:#3f3a33;max-width:60ch;margin:0}
+nav{display:flex;flex-wrap:wrap;gap:4px 20px;padding:16px 0;border-bottom:1px solid var(--rule);font-size:12.5px}
+nav a{color:var(--muted);text-decoration:none;letter-spacing:.05em}
+nav a:hover{color:var(--accent)}
+a{color:var(--accent);text-underline-offset:3px}
+section{padding:38px 0 30px;border-bottom:1px solid var(--rule);position:relative;scroll-margin-top:16px}
+section:last-of-type{border-bottom:0}
+h2{font:700 25px/1.4 var(--display);margin:0 0 18px;position:relative}
+section[data-no] h2{padding-left:56px}
+section:not([data-no]) h2{padding-left:0}
+.sec-no{position:absolute;left:0;top:-10px;font:700 42px/1 var(--display);color:var(--accent);opacity:.9}
+p{margin:12px 0}
+ul,ol{padding-left:22px}li{margin:8px 0}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+thead th{border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);font:600 11px/1.4 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+tbody tr:last-child td{border-bottom:2px solid var(--ink)}
+.callout{margin:26px 0;padding:4px 0 4px 26px;position:relative;font:19px/1.8 var(--display);color:#3a342d}
+.callout:before{content:"\201C";position:absolute;left:-2px;top:-16px;font:700 56px/1 var(--display);color:var(--accent);opacity:.3}
+figure.code{margin:22px 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+figcaption{font:11px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding:10px 0 6px}
+pre{margin:0;padding:14px 0 18px;background:none;font:13.5px/1.75 Consolas,"Courier New",monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#2a2620}
+ul.criteria{list-style:none;padding-left:0}
+ul.criteria li{position:relative;padding-left:20px;font-size:15px;color:#413b33}
+ul.criteria li:before{content:"\2014";position:absolute;left:0;color:var(--accent)}
+.objectives>ul{list-style:none;padding-left:0}
+.objectives>ul>li{padding:16px 0;border-bottom:1px dotted var(--rule)}
+.objectives>ul>li>strong{font:600 11px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-right:10px}
+.practice tr.wrong td{background:#fbefed}
+.practice tr.simulated{color:var(--muted)}
+.sources{list-style:none;padding:0}
+.sources li{border-top:1px solid var(--rule);padding:14px 0}
+.sources li strong{font:600 12px/1 var(--sans);letter-spacing:.1em;color:var(--accent)}
+.sources blockquote{margin:6px 0 0;font:15px/1.8 var(--display);color:#4a443b;border:0;padding:0}
+.source{font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+.mindmap{text-align:center}
+.mindmap figcaption{font-size:12px;color:var(--muted);letter-spacing:0;padding:8px 0 0;background:none;border:0}
+.portable-state pre{max-height:320px;overflow:auto;border:1px solid var(--rule);padding:14px}
+.footer{margin:36px 0 0;padding-top:16px;border-top:1px solid var(--rule);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:center}
+@media(max-width:600px){main{margin:0;padding:30px 20px}h1{font-size:30px}section[data-no] h2{padding-left:0}.sec-no{position:static;display:block;font-size:28px;margin-bottom:6px}nav{gap:4px 12px}.version{display:none}}
+@media print{@page{size:A4;margin:16mm}body{background:#fff}main{max-width:none;margin:0;padding:0;box-shadow:none}nav,.portable-state,.footer{display:none}section{border-bottom:.5pt solid #ddd;padding:14pt 0;break-inside:auto}h2{break-after:avoid}thead{display:table-header-group}tr{break-inside:avoid}a{color:inherit;text-decoration:none}pre{overflow:visible;max-height:none;font-size:9pt}}</style></head>
+<body><main><header><span class="version">学习笔记 · v1</span><p class="eyebrow">课堂学习</p><h1>一次函数：读懂斜率与截距</h1><p class="lead">先看变化率，再看起点；把公式、图像和实际含义对应起来。</p></header><nav aria-label="章节导航"><a href="#section-concept">斜率与截距</a><a href="#section-example">例题：y=2x+1</a><a href="#section-quiz">自测与答案</a></nav><section id="section-concept" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>斜率与截距</h2><table><thead><tr><th scope="col">符号</th><th scope="col">含义</th><th scope="col">读图方法</th></tr></thead><tbody><tr><td>k</td><td>Δy/Δx（Δx≠0）</td><td>横坐标增加1时纵坐标的变化量</td></tr><tr><td>b</td><td>y 轴截距</td><td>令 x=0，得到 y=b</td></tr></tbody></table>
+<aside class="callout"><strong>提示</strong><p>一次函数要求 k≠0；“截距”是带符号的数，不等于距离。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p></section>
+<section id="section-example" data-no="02"><p class="eyebrow">来源材料</p><h2><span class="sec-no">02</span>例题：y=2x+1</h2><ul><li>当 x=1，y=3；当 x=3，y=7。</li><li>Δx=2，Δy=4，所以 k=4/2=2。</li><li>当 x=0，y=1，所以 b=1。</li></ul><p class="source">依据：<a href="#source-S1">[S1]</a></p></section>
+<section id="section-quiz" data-no="03"><p class="eyebrow">补充解释</p><h2><span class="sec-no">03</span>自测与答案</h2><p>对于 y=−3x+2，判断随 x 增大时 y 如何变化，并求 y 轴截距。</p>
+<p>答案：y 减小；y 轴截距是2。理由：k=−3&lt;0，b=2。</p><p class="source">补充解释，不是原文摘录</p></section><section><h2>原始材料与来源</h2><ol class="sources"><li id="source-S1"><strong>[S1] 教学演示材料（人工编写），第1段</strong><blockquote>一次函数 y=kx+b，k≠0。k 是斜率，b 是直线与 y 轴交点的纵坐标。当 k&gt;0 时，y 随 x 增大而增大；k&lt;0 时则减小。例：y=2x+1，x 从1增加到3，y 从3增加到7。</blockquote></li></ol></section><section class="mindmap"><h2>知识结构</h2><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 522 108" width="522" height="108" role="img" aria-label="知识结构思维导图" style="max-width:100%;height:auto"><path d="M226 54 C256 54, 266 54, 296 54" fill="none" stroke="#9aa7b4" stroke-width="1.5"/><g><rect x="26" y="26" width="200" height="56" rx="8" fill="#ffffff" stroke="#52616b" stroke-width="1.5"/><text x="38" y="50" font-family="Microsoft YaHei, sans-serif" font-size="13" fill="#202c36">斜率</text><text x="38" y="69" font-family="Microsoft YaHei, sans-serif" font-size="11" fill="#52616b">尚未评估</text></g><g><rect x="296" y="26" width="200" height="56" rx="8" fill="#ffffff" stroke="#52616b" stroke-width="1.5"/><text x="308" y="50" font-family="Microsoft YaHei, sans-serif" font-size="13" fill="#202c36">一次函数计算</text><text x="308" y="69" font-family="Microsoft YaHei, sans-serif" font-size="11" fill="#52616b">尚未评估</text></g></svg><figcaption>按前置关系分层：左侧是先学，右侧是后学；虚线表示相关或扩展关系。</figcaption></figure></section><section><h2>知识关联与复习记录</h2><ul><li><strong>斜率</strong> · 尚未评估</li><li><strong>一次函数计算</strong> · 尚未评估</li></ul><table><thead><tr><th scope="col">关联</th><th scope="col">依据</th></tr></thead><tbody><tr><td>斜率 → 是以下知识的前置 → 一次函数计算</td><td>例题计算需要先理解斜率定义（教学建议）</td></tr></tbody></table><p class="source">关系可辅助安排复习，不能代替实际答题评估。</p></section><section class="portable-state"><h2>继续学习</h2><p>保存本文件，或复制以下 JSON。下次对话提供旧文件或 JSON 后，可继续更新；此处没有云端存储。</p><p>版本 1 · 首次整理</p><pre id="note-state">{
+  &quot;schemaVersion&quot;: 1,
+  &quot;note&quot;: {
+    &quot;schemaVersion&quot;: 1,
+    &quot;id&quot;: &quot;math&quot;,
+    &quot;revision&quot;: 1,
+    &quot;title&quot;: &quot;一次函数：读懂斜率与截距&quot;,
+    &quot;scene&quot;: &quot;course&quot;,
+    &quot;style&quot;: &quot;style-a&quot;,
+    &quot;summary&quot;: &quot;先看变化率，再看起点；把公式、图像和实际含义对应起来。&quot;,
+    &quot;sources&quot;: [
+      {
+        &quot;id&quot;: &quot;S1&quot;,
+        &quot;label&quot;: &quot;教学演示材料（人工编写），第1段&quot;,
+        &quot;text&quot;: &quot;一次函数 y=kx+b，k≠0。k 是斜率，b 是直线与 y 轴交点的纵坐标。当 k&gt;0 时，y 随 x 增大而增大；k&lt;0 时则减小。例：y=2x+1，x 从1增加到3，y 从3增加到7。&quot;
+      }
+    ],
+    &quot;sections&quot;: [
+      {
+        &quot;id&quot;: &quot;concept&quot;,
+        &quot;heading&quot;: &quot;斜率与截距&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;table&quot;,
+            &quot;headers&quot;: [
+              &quot;符号&quot;,
+              &quot;含义&quot;,
+              &quot;读图方法&quot;
+            ],
+            &quot;rows&quot;: [
+              [
+                &quot;k&quot;,
+                &quot;Δy/Δx（Δx≠0）&quot;,
+                &quot;横坐标增加1时纵坐标的变化量&quot;
+              ],
+              [
+                &quot;b&quot;,
+                &quot;y 轴截距&quot;,
+                &quot;令 x=0，得到 y=b&quot;
+              ]
+            ]
+          },
+          {
+            &quot;type&quot;: &quot;callout&quot;,
+            &quot;text&quot;: &quot;一次函数要求 k≠0；“截距”是带符号的数，不等于距离。&quot;
+          }
+        ],
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;example&quot;,
+        &quot;heading&quot;: &quot;例题：y=2x+1&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;list&quot;,
+            &quot;items&quot;: [
+              &quot;当 x=1，y=3；当 x=3，y=7。&quot;,
+              &quot;Δx=2，Δy=4，所以 k=4/2=2。&quot;,
+              &quot;当 x=0，y=1，所以 b=1。&quot;
+            ]
+          }
+        ],
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;quiz&quot;,
+        &quot;heading&quot;: &quot;自测与答案&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;对于 y=−3x+2，判断随 x 增大时 y 如何变化，并求 y 轴截距。&quot;
+          },
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;答案：y 减小；y 轴截距是2。理由：k=−3&lt;0，b=2。&quot;
+          }
+        ],
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: []
+      }
+    ]
+  },
+  &quot;graph&quot;: {
+    &quot;nodes&quot;: [
+      {
+        &quot;id&quot;: &quot;slope&quot;,
+        &quot;label&quot;: &quot;斜率&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;concept&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;linear-example&quot;,
+        &quot;label&quot;: &quot;一次函数计算&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;example&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      }
+    ],
+    &quot;edges&quot;: [
+      {
+        &quot;from&quot;: &quot;slope&quot;,
+        &quot;to&quot;: &quot;linear-example&quot;,
+        &quot;type&quot;: &quot;prerequisite&quot;,
+        &quot;basis&quot;: &quot;例题计算需要先理解斜率定义（教学建议）&quot;
+      }
+    ]
+  },
+  &quot;history&quot;: [
+    {
+      &quot;revision&quot;: 1,
+      &quot;summary&quot;: &quot;首次整理&quot;
+    }
+  ]
+}</pre></section><p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p></main></body></html>

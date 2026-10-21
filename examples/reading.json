@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "reading",
+  "revision": 1,
+  "title": "阅读记录：观察与解释要分开",
+  "scene": "reading",
+  "style": "style-b",
+  "summary": "把原文观点与自己的联想分别记录。",
+  "sources": [
+    {
+      "id": "S1",
+      "label": "教学演示材料（人工编写），第1段",
+      "text": "教学自编短文：窗边的豆苗朝光处弯曲。我记下每天的位置，又把花盆转了半圈，想看看接下来会怎样。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "quote",
+      "heading": "文本依据",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "记录中出现了连续观察和改变花盆朝向的动作。作者表达的是继续观察的意图。"
+        }
+      ],
+      "origin": "source",
+      "sourceIds": [
+        "S1"
+      ]
+    },
+    {
+      "id": "analysis",
+      "heading": "个人分析",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "可以把这段文字理解为一次从观察走向探究的尝试。但短文没有提供实验结果，不能据此下定论。"
+        }
+      ],
+      "origin": "supplement",
+      "sourceIds": []
+    }
+  ]
+}

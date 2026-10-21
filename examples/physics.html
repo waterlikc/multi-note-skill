@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>牛顿第二定律：合力决定加速度</title><style>:root{--ink:#141210;--paper:#fffdf8;--accent:#b8382a;--muted:#6f665c;--rule:#e3dccf;--display:"Songti SC",STSong,Georgia,serif;--sans:"Segoe UI","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#efece6;color:var(--ink);font:17px/1.85 var(--sans)}
+main{max-width:900px;margin:40px auto;padding:62px 72px 46px;background:var(--paper);box-shadow:0 24px 60px rgba(20,18,16,.09);position:relative}
+header{padding-bottom:26px;border-bottom:3px double var(--ink);position:relative}
+.eyebrow{display:block;font:600 11px/1 var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin:0 0 20px}
+h1{font:700 clamp(34px,5.2vw,52px)/1.16 var(--display);letter-spacing:-.015em;margin:0 0 16px;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.lead{font:18px/1.85 var(--display);color:#3f3a33;max-width:60ch;margin:0}
+nav{display:flex;flex-wrap:wrap;gap:4px 20px;padding:16px 0;border-bottom:1px solid var(--rule);font-size:12.5px}
+nav a{color:var(--muted);text-decoration:none;letter-spacing:.05em}
+nav a:hover{color:var(--accent)}
+a{color:var(--accent);text-underline-offset:3px}
+section{padding:38px 0 30px;border-bottom:1px solid var(--rule);position:relative;scroll-margin-top:16px}
+section:last-of-type{border-bottom:0}
+h2{font:700 25px/1.4 var(--display);margin:0 0 18px;position:relative}
+section[data-no] h2{padding-left:56px}
+section:not([data-no]) h2{padding-left:0}
+.sec-no{position:absolute;left:0;top:-10px;font:700 42px/1 var(--display);color:var(--accent);opacity:.9}
+p{margin:12px 0}
+ul,ol{padding-left:22px}li{margin:8px 0}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+thead th{border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);font:600 11px/1.4 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+tbody tr:last-child td{border-bottom:2px solid var(--ink)}
+.callout{margin:26px 0;padding:4px 0 4px 26px;position:relative;font:19px/1.8 var(--display);color:#3a342d}
+.callout:before{content:"\201C";position:absolute;left:-2px;top:-16px;font:700 56px/1 var(--display);color:var(--accent);opacity:.3}
+figure.code{margin:22px 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+figcaption{font:11px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding:10px 0 6px}
+pre{margin:0;padding:14px 0 18px;background:none;font:13.5px/1.75 Consolas,"Courier New",monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#2a2620}
+ul.criteria{list-style:none;padding-left:0}
+ul.criteria li{position:relative;padding-left:20px;font-size:15px;color:#413b33}
+ul.criteria li:before{content:"\2014";position:absolute;left:0;color:var(--accent)}
+.objectives>ul{list-style:none;padding-left:0}
+.objectives>ul>li{padding:16px 0;border-bottom:1px dotted var(--rule)}
+.objectives>ul>li>strong{font:600 11px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-right:10px}
+.practice tr.wrong td{background:#fbefed}
+.practice tr.simulated{color:var(--muted)}
+.sources{list-style:none;padding:0}
+.sources li{border-top:1px solid var(--rule);padding:14px 0}
+.sources li strong{font:600 12px/1 var(--sans);letter-spacing:.1em;color:var(--accent)}
+.sources blockquote{margin:6px 0 0;font:15px/1.8 var(--display);color:#4a443b;border:0;padding:0}
+.source{font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+.mindmap{text-align:center}
+.mindmap figcaption{font-size:12px;color:var(--muted);letter-spacing:0;padding:8px 0 0;background:none;border:0}
+.portable-state pre{max-height:320px;overflow:auto;border:1px solid var(--rule);padding:14px}
+.footer{margin:36px 0 0;padding-top:16px;border-top:1px solid var(--rule);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:center}
+@media(max-width:600px){main{margin:0;padding:30px 20px}h1{font-size:30px}section[data-no] h2{padding-left:0}.sec-no{position:static;display:block;font-size:28px;margin-bottom:6px}nav{gap:4px 12px}}
+.pager{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:5px;z-index:9}
+.pager a{display:flex;align-items:center;justify-content:center;width:30px;height:30px;font:600 12px/1 var(--sans);color:var(--ink);text-decoration:none;background:var(--paper);border:1px solid var(--rule);box-shadow:0 1px 0 rgba(20,18,16,.08)}
+.pager a:hover{border-color:var(--accent);color:var(--accent)}
+.pager .pager-top{border-radius:50%;background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.next-link{margin:18px 0 0;text-align:right;font-size:13px}
+.next-link a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:2px}
+.next-link a:hover{color:var(--accent);border-color:var(--accent)}
+@media(max-width:600px){.pager{right:10px;bottom:10px;gap:4px}.pager a{width:26px;height:26px;font-size:11px}}
+nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid currentColor;border-radius:2px;font-size:11.5px;text-decoration:none}
+@media print{.pager,.next-link{display:none}@page{size:A4;margin:16mm}body{background:#fff}main{max-width:none;margin:0;padding:0;box-shadow:none}nav,.portable-state,.footer{display:none}section{border-bottom:.5pt solid #ddd;padding:14pt 0;break-inside:auto}h2{break-after:avoid}thead{display:table-header-group}tr{break-inside:avoid}a{color:inherit;text-decoration:none}pre{overflow:visible;max-height:none;font-size:9pt}}
+.night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
+.night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
+.night-toggle-label:before{content:"◐ 夜间"}
+.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
+@media print{.night-toggle,.night-toggle-label{display:none}}
+
+body{padding-top:48px}
+.topbar{position:fixed;inset:0 0 auto 0;height:48px;display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--ink);color:#fff;z-index:30;font:600 12.5px/1 "Segoe UI","Microsoft YaHei",sans-serif;letter-spacing:.05em}
+.topbar .tb-title{font-weight:700}
+.topbar .tb-meta{opacity:.62;font-weight:400;letter-spacing:.02em}
+.topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.topbar .night-toggle-label:before{color:inherit}
+@media print{.topbar{display:none}body{padding-top:0}}
+html:has(#night:checked) body{background:#12100e;color:#d6cec2;background-image:none}
+html:has(#night:checked) main{background:#1a1714;border-color:#3a332c;box-shadow:none}
+html:has(#night:checked) header{border-color:#3a332c}
+html:has(#night:checked) h1,html:has(#night:checked) h2{color:#f2ece2}
+html:has(#night:checked) p,html:has(#night:checked) li,html:has(#night:checked) td,html:has(#night:checked) th,html:has(#night:checked) .lead{color:#d6cec2}
+html:has(#night:checked) th{background:#241f1a}
+html:has(#night:checked) table,html:has(#night:checked) pre,html:has(#night:checked) figure.code,html:has(#night:checked) .sources li,html:has(#night:checked) .mindmap figure{background:#1d1915;border-color:#3a332c}
+html:has(#night:checked) pre{color:#e8e1d6}
+html:has(#night:checked) figcaption{background:#241f1a;color:#a89d8f;border-color:#3a332c}
+html:has(#night:checked) .callout{background:#2a2419}
+html:has(#night:checked) a{color:#e08a78}
+html:has(#night:checked) .source,html:has(#night:checked) nav a,html:has(#night:checked) .next-link a{color:#a89d8f}
+html:has(#night:checked) .sources blockquote{color:#d6cec2}
+html:has(#night:checked) .night-toggle-label{background:#1d1915;color:#d6cec2;border-color:#3a332c}
+html:has(#night:checked) .topbar{background:#070d12}
+html:has(#night:checked) .pager a{background:#1d1915;color:#d6cec2;border-color:#3a332c}
+</style></head>
+<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">课堂学习</p><h1>牛顿第二定律：合力决定加速度</h1><p class="lead">计算之前，先明确研究对象、参考系和合力。</p></header><nav aria-label="章节导航"><a href="#section-law">适用条件与公式</a><a href="#section-example">小车受力计算</a><a href="#section-quiz">自测与答案</a></nav><section id="section-law" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>适用条件与公式</h2><p>在惯性参考系中，恒定质量物体满足 F合=ma。加速度方向与合力方向相同。</p>
+<table><thead><tr><th scope="col">量</th><th scope="col">符号</th><th scope="col">单位</th></tr></thead><tbody><tr><td>合力</td><td>F合</td><td>N</td></tr><tr><td>质量</td><td>m</td><td>kg</td></tr><tr><td>加速度</td><td>a</td><td>m/s²</td></tr></tbody></table><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-example">下一节：小车受力计算 →</a></p></section>
+<section id="section-example" data-no="02"><p class="eyebrow">来源材料</p><h2><span class="sec-no">02</span>小车受力计算</h2><ul><li>选取向右为正方向。</li><li>F合=10−2=8 N。</li><li>a=F合/m=8/2=4 m/s²，方向向右。</li></ul>
+<aside class="callout"><strong>提示</strong><p>不能把拉力直接当作合力。速度方向也不一定与加速度方向相同。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-quiz">下一节：自测与答案 →</a></p></section>
+<section id="section-quiz" data-no="03"><p class="eyebrow">补充解释</p><h2><span class="sec-no">03</span>自测与答案</h2><p>若向右拉力仍为10N，向左摩擦力改为4N，求加速度。</p>
+<p>答案：(10−4)/2=3 m/s²，向右。</p><p class="source">补充解释，不是原文摘录</p></section><section><h2>原始材料与来源</h2><ol class="sources"><li id="source-S1"><strong>[S1] 教学演示材料（人工编写），第1段</strong><blockquote>在惯性参考系内，对质量不变的物体，合外力 F合=ma，方向与加速度一致。质量2kg的小车受水平向右10N拉力和向左2N摩擦力，竖直方向合力为0。水平合力8N，加速度向右4m/s²。</blockquote></li></ol></section><section class="mindmap" id="outline"><h2>结构一览</h2><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 774 90" width="774" height="90" role="img" aria-label="章节结构图：3 节" style="max-width:100%;height:auto"><g><a href="#section-law"><rect x="12" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="24" y="35" font-size="11" fill="#7a8895">01</text><text x="24" y="58" font-size="14" font-weight="600" fill="#202c36">适用条件与公式</text></a><title>适用条件与公式</title></g><polygon points="197,45 189,41 189,49" fill="#9db0c0"/><g><a href="#section-example"><rect x="206" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="218" y="35" font-size="11" fill="#7a8895">02</text><text x="218" y="58" font-size="14" font-weight="600" fill="#202c36">小车受力计算</text></a><title>小车受力计算</title></g><polygon points="391,45 383,41 383,49" fill="#9db0c0"/><g><a href="#section-quiz"><rect x="400" y="14" width="168" height="62" rx="6" fill="#fff" stroke="#d5dee6"/><text x="412" y="35" font-size="11" fill="#7a8895">03</text><text x="412" y="58" font-size="14" font-weight="600" fill="#202c36">自测与答案</text></a><title>自测与答案</title></g></svg><figcaption>按章节顺序从左到右、从上到下阅读；点击卡片跳到对应章节。</figcaption></figure></section><section class="portable-state"><h2>继续学习</h2><p>保存本文件，或复制以下 JSON。下次对话提供旧文件或 JSON 后，可继续更新；此处没有云端存储。</p><p>版本 1 · 首次整理</p><pre id="note-state">{
+  &quot;schemaVersion&quot;: 1,
+  &quot;note&quot;: {
+    &quot;schemaVersion&quot;: 1,
+    &quot;id&quot;: &quot;physics&quot;,
+    &quot;revision&quot;: 1,
+    &quot;title&quot;: &quot;牛顿第二定律：合力决定加速度&quot;,
+    &quot;scene&quot;: &quot;course&quot;,
+    &quot;style&quot;: &quot;style-a&quot;,
+    &quot;summary&quot;: &quot;计算之前，先明确研究对象、参考系和合力。&quot;,
+    &quot;sources&quot;: [
+      {
+        &quot;id&quot;: &quot;S1&quot;,
+        &quot;label&quot;: &quot;教学演示材料（人工编写），第1段&quot;,
+        &quot;text&quot;: &quot;在惯性参考系内，对质量不变的物体，合外力 F合=ma，方向与加速度一致。质量2kg的小车受水平向右10N拉力和向左2N摩擦力，竖直方向合力为0。水平合力8N，加速度向右4m/s²。&quot;
+      }
+    ],
+    &quot;sections&quot;: [
+      {
+        &quot;id&quot;: &quot;law&quot;,
+        &quot;heading&quot;: &quot;适用条件与公式&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;在惯性参考系中，恒定质量物体满足 F合=ma。加速度方向与合力方向相同。&quot;
+          },
+          {
+            &quot;type&quot;: &quot;table&quot;,
+            &quot;headers&quot;: [
+              &quot;量&quot;,
+              &quot;符号&quot;,
+              &quot;单位&quot;
+            ],
+            &quot;rows&quot;: [
+              [
+                &quot;合力&quot;,
+                &quot;F合&quot;,
+                &quot;N&quot;
+              ],
+              [
+                &quot;质量&quot;,
+                &quot;m&quot;,
+                &quot;kg&quot;
+              ],
+              [
+                &quot;加速度&quot;,
+                &quot;a&quot;,
+                &quot;m/s²&quot;
+              ]
+            ]
+          }
+        ],
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;example&quot;,
+        &quot;heading&quot;: &quot;小车受力计算&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;list&quot;,
+            &quot;items&quot;: [
+              &quot;选取向右为正方向。&quot;,
+              &quot;F合=10−2=8 N。&quot;,
+              &quot;a=F合/m=8/2=4 m/s²，方向向右。&quot;
+            ]
+          },
+          {
+            &quot;type&quot;: &quot;callout&quot;,
+            &quot;text&quot;: &quot;不能把拉力直接当作合力。速度方向也不一定与加速度方向相同。&quot;
+          }
+        ],
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;quiz&quot;,
+        &quot;heading&quot;: &quot;自测与答案&quot;,
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;若向右拉力仍为10N，向左摩擦力改为4N，求加速度。&quot;
+          },
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;答案：(10−4)/2=3 m/s²，向右。&quot;
+          }
+        ],
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: []
+      }
+    ]
+  },
+  &quot;graph&quot;: {
+    &quot;nodes&quot;: [],
+    &quot;edges&quot;: []
+  },
+  &quot;history&quot;: [
+    {
+      &quot;revision&quot;: 1,
+      &quot;summary&quot;: &quot;首次整理&quot;
+    }
+  ]
+}</pre></section><p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p></main></body></html>

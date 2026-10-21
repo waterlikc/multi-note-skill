@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "science",
+  "revision": 1,
+  "title": "月相变化：从日月地位置理解",
+  "scene": "science",
+  "style": "style-a",
+  "summary": "月相取决于从地球看到的月球受光部分。",
+  "sources": [
+    {
+      "id": "S1",
+      "label": "教学演示材料（人工编写），第1段",
+      "text": "月球本身不发光，反射太阳光。月球绕地球运动时，我们看到的被太阳照亮部分发生变化，形成月相。月食与月相不是同一种现象。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "why",
+      "heading": "现象与原理",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "月球反射太阳光。日月地相对位置变化，使观察者看到的受光部分比例变化。"
+        }
+      ],
+      "origin": "source",
+      "sourceIds": [
+        "S1"
+      ]
+    },
+    {
+      "id": "boundary",
+      "heading": "不要混淆月相和月食",
+      "blocks": [
+        {
+          "type": "callout",
+          "text": "普通月相变化不能解释为地球影子遮住月球；月食涉及月球进入地球的影子。"
+        }
+      ],
+      "origin": "supplement",
+      "sourceIds": []
+    }
+  ]
+}
