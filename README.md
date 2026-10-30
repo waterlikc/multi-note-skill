@@ -114,7 +114,7 @@ node cli/note.mjs audit out
 
 ## 交互版（可选）
 
-`node cli/note.mjs render 笔记.json 输出.html --interactive`：内联三套主题 CSS，右上角切换杂志/蓝图/手账，右下角翻页；文件含脚本，仅用于演示与答辩。默认导出仍是单主题、无脚本版本。
+`node cli/note.mjs render 笔记.json 输出.html --interactive`：内联三套主题 CSS，右上角切换杂志/蓝图/手账，右下角翻页；文件含脚本，仅用于演示。默认导出仍是单主题、无脚本版本。
 
 ## 深色模式与输入边界
 
@@ -166,7 +166,7 @@ node cli/note.mjs lint 笔记.json 产物.html
 
 拿到 .srt / .vtt 文件时：`parseSubtitles(text)` 解析时间轴，`toSources(cues)` 合并成带 `00:12–00:48` 的来源块，不需要手工抄时间。
 
-## 创新点（答辩口径）
+## 设计取舍
 
 1. **契约化**：五类块 + S 编号，产物可审计，不靠模型自觉。
 2. **可携带**：单文件 HTML + 状态 JSON，断网、换设备、打印都不散。
