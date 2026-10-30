@@ -1,0 +1,549 @@
+{
+  "schemaVersion": 1,
+  "note": {
+    "schemaVersion": 1,
+    "id": "tcp-handshake",
+    "revision": 1,
+    "title": "TCP 三次握手：为什么两次不够",
+    "scene": "tech",
+    "style": "style-b",
+    "summary": "用三次报文把“双方都能发、都能收”确认清楚；再用状态机解释 SYN、ACK 与半连接队列。",
+    "keywords": [
+      "TCP",
+      "三次握手",
+      "SYN",
+      "状态机"
+    ],
+    "sources": [
+      {
+        "id": "S1",
+        "label": "自写讲义：TCP 连接建立（2026-10-27）",
+        "text": "TCP 通过 SYN、SYN+ACK、ACK 三个报文交换建立连接；双方需要确认彼此的发送与接收能力，并同步初始序列号。"
+      }
+    ],
+    "objectives": [
+      {
+        "id": "o1",
+        "text": "能复述三次握手的报文顺序并解释两次为什么不够",
+        "criteria": [
+          "能画出 SYN / SYN+ACK / ACK",
+          "能说明两次无法确认客户端接收能力"
+        ],
+        "sectionIds": [
+          "why",
+          "handshake",
+          "two"
+        ]
+      },
+      {
+        "id": "o2",
+        "text": "能把报文与 TCP 状态对应起来",
+        "criteria": [
+          "能说出 SYN-SENT / SYN-RCVD",
+          "能说出 ESTABLISHED 的条件"
+        ],
+        "sectionIds": [
+          "states",
+          "loss"
+        ]
+      },
+      {
+        "id": "o3",
+        "text": "能定位常见的握手异常",
+        "criteria": [
+          "能区分 SYN 丢失与 ACK 丢失",
+          "能解释半连接队列与 SYN Flood"
+        ],
+        "sectionIds": [
+          "myths",
+          "security",
+          "transfer"
+        ]
+      }
+    ],
+    "practice": [
+      {
+        "id": "p1",
+        "objectiveId": "o1",
+        "verdict": "right",
+        "simulated": true,
+        "question": "两次握手能否确认客户端能收到服务器报文？",
+        "answer": "不能；客户端是否收到 SYN+ACK 需要第三次 ACK 才能让服务器确认。"
+      },
+      {
+        "id": "p2",
+        "objectiveId": "o2",
+        "verdict": "wrong",
+        "simulated": true,
+        "question": "服务器收到 SYN 后进入什么状态？",
+        "answer": "SYN-RCVD，不是 ESTABLISHED；还要等 ACK。"
+      },
+      {
+        "id": "p3",
+        "objectiveId": "o3",
+        "verdict": "skip",
+        "simulated": true,
+        "question": "SYN 丢失和 ACK 丢失的现象有什么不同？",
+        "answer": "SYN 丢失时服务器看不到连接；ACK 丢失时服务器停在 SYN-RCVD，客户端已 ESTABLISHED。"
+      }
+    ],
+    "sections": [
+      {
+        "id": "why",
+        "heading": "为什么需要握手",
+        "origin": "source",
+        "sourceIds": [
+          "S1"
+        ],
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "TCP 是可靠、面向连接的协议。连接建立前，双方要确认两件事：彼此都能发送、都能接收，并同步各自的初始序列号。"
+          },
+          {
+            "type": "callout",
+            "text": "握手不是“打个招呼”，而是在不可靠的网络上建立可用的双向通道。"
+          }
+        ]
+      },
+      {
+        "id": "handshake",
+        "heading": "三次报文：SYN → SYN+ACK → ACK",
+        "origin": "supplement",
+        "sourceIds": [],
+        "blocks": [
+          {
+            "type": "animation",
+            "id": "tcp-three-way",
+            "preset": "flow",
+            "title": "TCP 三次握手",
+            "alt": "客户端与服务器之间三次报文交换的动画示意",
+            "caption": "第三次 ACK 后双方进入 ESTABLISHED；动画只展示时序，不代替状态机细节。",
+            "loop": true,
+            "nodes": [
+              {
+                "id": "client",
+                "label": "客户端",
+                "tone": "accent"
+              },
+              {
+                "id": "server",
+                "label": "服务器",
+                "tone": "ink"
+              }
+            ],
+            "edges": [
+              {
+                "id": "syn",
+                "from": "client",
+                "to": "server",
+                "label": "SYN seq=x"
+              },
+              {
+                "id": "synack",
+                "from": "server",
+                "to": "client",
+                "label": "SYN+ACK"
+              },
+              {
+                "id": "ack",
+                "from": "client",
+                "to": "server",
+                "label": "ACK"
+              }
+            ],
+            "steps": [
+              {
+                "id": "s1",
+                "label": "客户端发 SYN",
+                "detail": "进入 SYN-SENT",
+                "focus": [
+                  "client",
+                  "syn"
+                ],
+                "hold": 1.6
+              },
+              {
+                "id": "s2",
+                "label": "服务器回 SYN+ACK",
+                "detail": "进入 SYN-RCVD",
+                "focus": [
+                  "server",
+                  "synack"
+                ],
+                "hold": 1.6
+              },
+              {
+                "id": "s3",
+                "label": "客户端回 ACK",
+                "detail": "双方 ESTABLISHED",
+                "focus": [
+                  "client",
+                  "server",
+                  "ack"
+                ],
+                "hold": 1.8
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "三个报文各自携带序列号；第三次 ACK 让服务器确认“客户端确实收到了我的 SYN+ACK”。"
+          }
+        ]
+      },
+      {
+        "id": "states",
+        "heading": "状态变化：报文走到哪一步",
+        "origin": "supplement",
+        "sourceIds": [],
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "时刻",
+              "客户端",
+              "服务器",
+              "说明"
+            ],
+            "rows": [
+              [
+                "初始",
+                "CLOSED",
+                "LISTEN",
+                "服务器等待连接"
+              ],
+              [
+                "发 SYN",
+                "SYN-SENT",
+                "LISTEN",
+                "客户端主动打开"
+              ],
+              [
+                "收 SYN",
+                "SYN-SENT",
+                "SYN-RCVD",
+                "服务器回 SYN+ACK"
+              ],
+              [
+                "收 SYN+ACK",
+                "ESTABLISHED",
+                "SYN-RCVD",
+                "客户端回 ACK"
+              ],
+              [
+                "收 ACK",
+                "ESTABLISHED",
+                "ESTABLISHED",
+                "连接可用"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "第三次 ACK 丢失时，客户端已经 ESTABLISHED，服务器还停在 SYN-RCVD；这解释了“客户端能发、服务器却认为没连上”的现象。"
+          }
+        ]
+      },
+      {
+        "id": "two",
+        "heading": "为什么两次不够",
+        "origin": "supplement",
+        "sourceIds": [],
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "两次只能确认：客户端能发、服务器能收；以及服务器能发、客户端能收（但服务器不知道客户端收到了）。",
+              "第三次 ACK 让服务器确认客户端的接收能力，也避免旧 SYN 造成错误连接。",
+              "两次握手无法让服务器区分“新连接”与“延迟到达的旧 SYN”。"
+            ]
+          },
+          {
+            "type": "callout",
+            "text": "核心不是“多一次更保险”，而是第三次才让服务器获得“客户端已收到”的证据。"
+          }
+        ]
+      },
+      {
+        "id": "loss",
+        "heading": "丢包与重传",
+        "origin": "supplement",
+        "sourceIds": [],
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "丢失的报文",
+              "客户端",
+              "服务器",
+              "结果"
+            ],
+            "rows": [
+              [
+                "SYN",
+                "重传 SYN",
+                "看不到连接",
+                "超时后重试"
+              ],
+              [
+                "SYN+ACK",
+                "重传 SYN",
+                "SYN-RCVD 等待",
+                "服务器超时回收"
+              ],
+              [
+                "ACK",
+                "ESTABLISHED",
+                "SYN-RCVD",
+                "服务器重传 SYN+ACK"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "握手阶段的重传由内核定时器处理；应用层看到的是连接建立变慢或失败，而不是“报文一定丢了一次”。"
+          }
+        ]
+      },
+      {
+        "id": "myths",
+        "heading": "五个常见误区",
+        "origin": "supplement",
+        "sourceIds": [],
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "说法",
+              "问题",
+              "更准确的说法"
+            ],
+            "rows": [
+              [
+                "三次握手保证数据不丢",
+                "握手只建立连接",
+                "可靠性靠序列号、ACK、重传"
+              ],
+              [
+                "SYN 不占资源",
+                "服务器会建半连接",
+                "SYN 队列可能被占满"
+              ],
+              [
+                "ACK 丢失无所谓",
+                "服务器停在 SYN-RCVD",
+                "需要重传 SYN+ACK"
+              ],
+              [
+                "握手一定 3 个包",
+                "可能带数据或选项",
+                "通常是 3 个报文，但可携带选项"
+              ],
+              [
+                "客户端先 ESTABLISHED 就通了",
+                "服务器可能还没确认",
+                "双向都 ESTABLISHED 才稳定"
+              ]
+            ]
+          },
+          {
+            "type": "callout",
+            "text": "看抓包时先看双方状态，不要只看“客户端已经 ESTABLISHED”。"
+          }
+        ]
+      },
+      {
+        "id": "security",
+        "heading": "安全边界：SYN Flood 与半连接",
+        "origin": "supplement",
+        "sourceIds": [],
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "服务器收到 SYN 后要分配半连接资源；大量伪造源地址的 SYN 会占满 SYN 队列，这就是 SYN Flood 的资源耗尽路径。"
+          },
+          {
+            "type": "list",
+            "items": [
+              "SYN Cookie 把状态编码进序列号，减少半连接存储。",
+              "限速、代理、清洗设备只能缓解，不改变握手语义。",
+              "不要用“握手成功”推断对端身份可信。"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "transfer",
+        "heading": "迁移任务：用抓包验证三次握手",
+        "origin": "supplement",
+        "sourceIds": [],
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "在本地抓一次访问网站的握手，标出三个报文的 seq/ack。",
+              "人为丢弃第三个 ACK，观察服务器是否重传 SYN+ACK。",
+              "画一张状态表，解释“客户端已 ESTABLISHED、服务器仍 SYN-RCVD”的抓包。"
+            ]
+          },
+          {
+            "type": "table",
+            "headers": [
+              "自评",
+              "初级",
+              "中级",
+              "高级"
+            ],
+            "rows": [
+              [
+                "报文",
+                "能背顺序",
+                "能读 seq/ack",
+                "能解释选项与序列号"
+              ],
+              [
+                "状态",
+                "知道 3 个状态",
+                "能画迁移",
+                "能定位半连接"
+              ],
+              [
+                "异常",
+                "知道会重传",
+                "能区分丢包",
+                "能解释 SYN Flood"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "n1",
+        "label": "为什么需要握手",
+        "sectionIds": [
+          "why"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      },
+      {
+        "id": "n2",
+        "label": "三次报文：SYN → SYN+ACK → ACK",
+        "sectionIds": [
+          "handshake"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      },
+      {
+        "id": "n3",
+        "label": "状态变化：报文走到哪一步",
+        "sectionIds": [
+          "states"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      },
+      {
+        "id": "n4",
+        "label": "为什么两次不够",
+        "sectionIds": [
+          "two"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      },
+      {
+        "id": "n5",
+        "label": "丢包与重传",
+        "sectionIds": [
+          "loss"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      },
+      {
+        "id": "n6",
+        "label": "五个常见误区",
+        "sectionIds": [
+          "myths"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      },
+      {
+        "id": "n7",
+        "label": "安全边界：SYN Flood 与半连接",
+        "sectionIds": [
+          "security"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      },
+      {
+        "id": "n8",
+        "label": "迁移任务：用抓包验证三次握手",
+        "sectionIds": [
+          "transfer"
+        ],
+        "mastery": "unknown",
+        "evidence": []
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n2",
+        "type": "prerequisite",
+        "basis": "按笔记顺序阅读"
+      },
+      {
+        "from": "n2",
+        "to": "n3",
+        "type": "prerequisite",
+        "basis": "按笔记顺序阅读"
+      },
+      {
+        "from": "n3",
+        "to": "n4",
+        "type": "prerequisite",
+        "basis": "按笔记顺序阅读"
+      },
+      {
+        "from": "n4",
+        "to": "n5",
+        "type": "prerequisite",
+        "basis": "按笔记顺序阅读"
+      },
+      {
+        "from": "n5",
+        "to": "n6",
+        "type": "prerequisite",
+        "basis": "按笔记顺序阅读"
+      },
+      {
+        "from": "n6",
+        "to": "n7",
+        "type": "prerequisite",
+        "basis": "按笔记顺序阅读"
+      },
+      {
+        "from": "n7",
+        "to": "n8",
+        "type": "prerequisite",
+        "basis": "按笔记顺序阅读"
+      }
+    ]
+  },
+  "history": [
+    {
+      "revision": 1,
+      "summary": "首次生成 TCP 三次握手笔记"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+// 审计入口：node scripts/audit.mjs [目录]；依赖 ../cli 与 ../src。
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { runAudit } from '../cli/note.mjs';

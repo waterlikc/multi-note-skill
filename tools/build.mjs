@@ -13,7 +13,7 @@ const themeCss = {
 for (const [style, css] of Object.entries(themeCss)) {
   await write(`assets/template-${style}.html`, `<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{TITLE}}</title><style>${css}</style></head>
-<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v{{REVISION}}</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">{{SCENE}}</p><h1>{{TITLE}}</h1><p class="lead">{{SUMMARY}}</p></header><nav aria-label="章节导航">{{NAV}}</nav>{{CONTENT}}<section><h2>原始材料与来源</h2><ol class="sources">{{SOURCES}}</ol></section>{{STATE}}<p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p>{{PAGER}}</main></body></html>\n`);
+<body><input type="checkbox" id="night" class="night-toggle" aria-label="夜间模式"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v{{REVISION}}</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">{{SCENE}}</p><h1>{{TITLE}}</h1><p class="lead">{{SUMMARY}}</p>{{KEYWORDS}}</header><nav aria-label="章节导航">{{NAV}}</nav>{{CONTENT}}<section><h2>原始材料与来源</h2><ol class="sources">{{SOURCES}}</ol></section>{{STATE}}<p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p>{{PAGER}}</main></body></html>\n`);
 }
 
 const p = text => ({ type: 'paragraph', text });

@@ -1,3 +1,5 @@
+import { videoPrompt } from './video.mjs';
+
 const prompts = {
   image: '请粘贴图片中的文字，公式和不清楚的数字请单独标注。',
   video: '请粘贴视频字幕，可保留时间戳。',
@@ -19,7 +21,13 @@ export async function resolveInput(input, adapters = {}, { timeoutMs = 15000 } =
     next: '请按章节拆分后分批提供，单次不超过 ' + MAX_TEXT + ' 字符；或先给目录，再逐章整理。'
   };
   if (usable(text)) return { status: 'ready', text: text.trim(), label: input.label || '用户提供材料', via: 'provided' };
-  const fallback = reason => ({ status: 'needs_content', reason, next: prompts[input.kind] });
+  const fallback = reason => {
+    if (input.kind === 'video' && input.value) {
+      const p = videoPrompt(input.value);
+      return { ...p, reason: p.reason + (reason ? '（' + reason + '）' : '') };
+    }
+    return { status: 'needs_content', reason, next: prompts[input.kind] };
+  };
   const adapter = adapters[input.kind];
   if (typeof adapter !== 'function') return fallback('本次没有可用的内容解析工具');
   const controller = new AbortController();

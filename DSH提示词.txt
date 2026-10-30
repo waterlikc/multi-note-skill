@@ -1,0 +1,10 @@
+把当前工作区当作 multi-note-skill 项目，不要调用名为 multi-note-skill 的工具。
+
+第一步：读 SKILL.md，确认输入、输出、六类块和三条硬规则。
+第二步：按程序模式运行 quickstart：
+  node cli/note.mjs render examples/quickstart.json out/quickstart.html examples/quickstart.state.json
+  node cli/note.mjs audit out
+  node cli/note.mjs lint examples/quickstart.json out/quickstart.html
+第三步：把 out/quickstart.html 和审计输出发我，并说明用了哪个场景、哪些来源。
+
+如果我给你新材料：先判断有没有正文/字幕；只有链接不算已读。没有原文就停下来问我要，不要编。

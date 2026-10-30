@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TCP 三次握手：为什么两次不够</title><style>:root{--ink:#12324a;--paper:#f6f9fa;--line:#b7d2dc;--accent:#0e7c8a;--mono:Consolas,"Courier New",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:#e4ebef;color:var(--ink);font:16px/1.8 "Segoe UI","Microsoft YaHei",sans-serif;background-image:repeating-linear-gradient(0deg,transparent 0 23px,rgba(18,50,74,.05) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,rgba(18,50,74,.05) 23px 24px)}
+main{max-width:900px;margin:36px auto;padding:44px 52px 34px;background:var(--paper);border:1px solid var(--line);position:relative}
+main:before{content:"";position:absolute;left:-1px;top:-1px;width:18px;height:18px;border-left:3px solid var(--accent);border-top:3px solid var(--accent)}
+main:after{content:"";position:absolute;right:-1px;bottom:-1px;width:18px;height:18px;border-right:3px solid var(--accent);border-bottom:3px solid var(--accent)}
+header{padding-bottom:16px;border-bottom:2px solid var(--ink);position:relative}
+.eyebrow{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:6px 10px;margin:0 0 16px}
+h1{font:700 clamp(30px,4.4vw,44px)/1.25 "Segoe UI","Microsoft YaHei",sans-serif;margin:0 0 10px;letter-spacing:-.01em;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.lead{font-size:16px;color:#3c5566;max-width:64ch;margin:0}
+nav{display:flex;flex-wrap:wrap;gap:4px 16px;padding:12px 0;border-bottom:1px dashed var(--line);font:12px/1.6 var(--mono)}
+nav a{color:var(--ink);text-decoration:none}
+a{color:var(--accent)}
+section{padding:30px 0 26px;border-bottom:1px dashed var(--line);position:relative;scroll-margin-top:16px}
+section[data-no]:before{content:"SEC " attr(data-no);position:absolute;right:0;top:6px;font:10px/1 var(--mono);letter-spacing:.2em;color:var(--accent);padding-bottom:3px;border-bottom:1px solid var(--accent)}
+h2{font:700 21px/1.5 "Segoe UI","Microsoft YaHei",sans-serif;margin:0 0 12px}
+.sec-no{display:none}
+p{margin:11px 0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:#fff}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#eaf2f5;font:600 10.5px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.callout{border:1px dashed var(--accent);background:#eef7f8;padding:16px 16px 12px;margin:20px 0;position:relative;font-size:15px}
+.callout:before{content:"NOTE";position:absolute;top:-8px;left:14px;background:var(--paper);padding:0 6px;font:10px/1 var(--mono);letter-spacing:.22em;color:var(--accent)}
+figure.code{margin:18px 0;border:1px solid var(--line);background:#fff}
+figcaption{font:10.5px/1 var(--mono);letter-spacing:.16em;color:var(--accent);padding:9px 12px;border-bottom:1px dashed var(--line);background:#f0f6f8}
+pre{margin:0;padding:13px 14px;background:#fff;font:13px/1.7 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;color:#1b3a52}
+ul.criteria{list-style:none;padding-left:0}
+ul.criteria li{position:relative;padding-left:22px;font-size:14.5px}
+ul.criteria li:before{content:"";position:absolute;left:2px;top:6px;width:9px;height:9px;border:1.5px solid var(--accent);background:#fff}
+.objectives>ul{list-style:none;padding-left:0}
+.objectives>ul>li{padding:14px 0;border-bottom:1px dashed var(--line)}
+.objectives>ul>li>strong{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--accent);padding:4px 7px;margin-right:9px}
+.practice tr.wrong td{background:#fdf1ef}
+.practice tr.simulated{color:#6b7f8c}
+.sources{list-style:none;padding:0}
+.sources li{border-left:2px solid var(--accent);padding:10px 14px;margin:10px 0;background:#fff}
+.sources li strong{font:600 11px/1 var(--mono);letter-spacing:.1em;color:var(--accent)}
+.sources blockquote{margin:6px 0 0;font-size:14px;color:#3c5566;border:0;padding:0}
+.source{font:12px/1.7 var(--mono);color:#5b7283}
+.mindmap{text-align:center}
+.mindmap figcaption{font:11.5px/1.7 var(--mono);color:#5b7283;background:none;border:0;padding:8px 0 0}
+.portable-state pre{max-height:320px;overflow:auto;background:#fff;border:1px solid var(--line);padding:14px}
+.footer{margin:30px 0 0;padding-top:12px;border-top:1px dashed var(--line);font:10.5px/1.6 var(--mono);color:#5b7283;text-align:center}
+@media(max-width:600px){main{margin:0;padding:26px 18px;box-shadow:none}section[data-no]:before{display:none}h1{font-size:27px}nav{gap:4px 10px}}
+.pager{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:5px;z-index:9}
+.pager a{display:flex;align-items:center;justify-content:center;width:30px;height:30px;font:600 12px/1 var(--mono);color:var(--accent);text-decoration:none;background:var(--paper);border:1px solid var(--line)}
+.pager a:hover{background:var(--accent);color:#fff}
+.pager .pager-top{background:var(--ink);color:#fff;border-color:var(--ink)}
+.next-link{margin:18px 0 0;text-align:right;font:12px/1.6 var(--mono)}
+.next-link a{color:#5b7283;text-decoration:none}
+.next-link a:hover{color:var(--accent)}
+@media(max-width:600px){.pager{right:10px;bottom:10px;gap:4px}.pager a{width:26px;height:26px;font-size:11px}}
+nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid currentColor;border-radius:2px;font-size:11.5px;text-decoration:none}
+@media print{.pager,.next-link{display:none}@page{size:A4;margin:15mm}body{background:#fff}main{max-width:none;margin:0;padding:0;border:0;box-shadow:none}main:before,main:after{display:none}nav,.portable-state,.footer{display:none}section{border-bottom:.5pt dashed #ccc;padding:13pt 0}section[data-no]:before{display:none}h2{break-after:avoid}thead{display:table-header-group}tr{break-inside:avoid}a{color:inherit;text-decoration:none}pre{overflow:visible;max-height:none;font-size:9pt}}
+.night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
+.night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
+.night-toggle-label:before{content:"◐ 夜间"}
+.night-toggle:focus-visible+.night-toggle-label{outline:2px solid var(--accent)}
+html:has(#night:checked) .night-toggle-label:before{content:"◑ 白天"}
+body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
+@media print{.night-toggle,.night-toggle-label{display:none}}
+
+body{padding-top:48px}
+.topbar{position:fixed;inset:0 0 auto 0;height:48px;display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--ink);color:#fff;z-index:30;font:600 12.5px/1 "Segoe UI","Microsoft YaHei",sans-serif;letter-spacing:.05em}
+.topbar .tb-title{font-weight:700}
+.topbar .tb-meta{opacity:.62;font-weight:400;letter-spacing:.02em}
+.topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.topbar .night-toggle-label:before{color:inherit}
+@media print{.topbar{display:none}body{padding-top:0}}
+@media screen{
+html:has(#night:checked) body{background:#0a141c;color:#cfe2ea;background-image:none}
+html:has(#night:checked) main{background:#0f1e2a;border-color:#24404f;box-shadow:none}
+html:has(#night:checked) header{border-color:#24404f}
+html:has(#night:checked) h1,html:has(#night:checked) h2{color:#e6f2f8}
+html:has(#night:checked) p,html:has(#night:checked) li,html:has(#night:checked) td,html:has(#night:checked) th,html:has(#night:checked) .lead{color:#cfe2ea}
+html:has(#night:checked) th{background:#16303d}
+html:has(#night:checked) table,html:has(#night:checked) pre,html:has(#night:checked) figure.code,html:has(#night:checked) .sources li,html:has(#night:checked) .mindmap figure{background:#122836;border-color:#24404f}
+html:has(#night:checked) pre{color:#d6e6ee}
+html:has(#night:checked) figcaption{background:#16303d;color:#8fb0bf;border-color:#24404f}
+html:has(#night:checked) .callout{background:#122836}
+html:has(#night:checked) a{color:#5fc2cf}
+html:has(#night:checked) .source,html:has(#night:checked) nav a,html:has(#night:checked) .next-link a{color:#8fb0bf}
+html:has(#night:checked) .sources blockquote{color:#cfe2ea}
+html:has(#night:checked) .night-toggle-label{background:#122836;color:#cfe2ea;border-color:#24404f}
+html:has(#night:checked) .topbar{background:#070d12}
+html:has(#night:checked) .pager a{background:#122836;color:#cfe2ea;border-color:#24404f}
+
+html:has(#night:checked) section[data-no]:before{color:#5fc2cf;border-color:#5fc2cf}
+html:has(#night:checked){color-scheme:dark}
+html:has(#night:checked) .footer{color:#8fb0bf}
+html:has(#night:checked) .practice tr.wrong td{background:#3a2420}
+html:has(#night:checked) svg rect[fill="#fff"]{fill:#122836;stroke:#24404f}
+html:has(#night:checked) svg text{fill:#cfe2ea}
+html:has(#night:checked) svg path{stroke:#3f5b6b}
+}
+.anim-tcp-three-way{margin:20px 0;border:1px solid var(--line,#C9D8E0);background:var(--paper,#fff);padding:14px 16px 10px;break-inside:avoid}
+.anim-tcp-three-way .anim-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin:0 0 8px;font:600 13px/1.4 "Segoe UI","Microsoft YaHei",sans-serif;color:var(--ink,#12293d)}
+.anim-tcp-three-way .anim-head small{font:10px/1.4 Consolas,monospace;color:var(--muted,#5b7283);white-space:nowrap}
+.anim-tcp-three-way .anim-tools{display:flex;gap:10px;align-items:center;margin:0 0 6px;font:10px/1.4 Consolas,monospace;color:var(--muted,#5b7283)}
+.anim-tcp-three-way .anim-pause{position:absolute;width:1px;height:1px;opacity:0}
+.anim-tcp-three-way .anim-pause-label{cursor:pointer;border:1px solid var(--line,#C9D8E0);padding:2px 8px;border-radius:999px;background:var(--paper,#fff)}
+.anim-tcp-three-way .anim-stage{position:relative;--anim-run:running}
+.anim-tcp-three-way svg{display:block;width:100%;height:auto;overflow:visible}
+.anim-tcp-three-way .anim-bg{fill:var(--paper,#fff)}
+.anim-tcp-three-way .anim-axis{stroke:var(--line,#C9D8E0);stroke-width:1;stroke-dasharray:3 5}
+.anim-tcp-three-way .anim-box{fill:var(--paper,#fff);stroke:var(--tone,var(--line,#C9D8E0));stroke-width:1.5}
+.anim-tcp-three-way .anim-milestone{fill:var(--paper,#fff);stroke:var(--tone,var(--accent,#1A7F8E));stroke-width:2}
+.anim-tcp-three-way .anim-label{fill:var(--ink,#12293d);font:600 14px "Segoe UI","Microsoft YaHei",sans-serif}
+.anim-tcp-three-way .anim-detail{fill:var(--muted,#5b7283);font:10.5px Consolas,monospace}
+.anim-tcp-three-way .anim-link{fill:none;stroke:var(--tone,var(--muted,#5b7283));stroke-width:2;stroke-dasharray:100;stroke-dashoffset:0}
+.anim-tcp-three-way .is-dashed .anim-link{stroke-dasharray:3 5}
+.anim-tcp-three-way .anim-edge-label{fill:var(--muted,#5b7283);font:10px Consolas,monospace}
+.anim-tcp-three-way .anim-arrow{fill:var(--tone,var(--muted,#5b7283))}
+.anim-tcp-three-way .anim-packet{opacity:0;fill:var(--accent,#1A7F8E);stroke:var(--paper,#fff);stroke-width:1.5;pointer-events:none}
+.anim-tcp-three-way .anim-focus{opacity:0;pointer-events:none}
+.anim-tcp-three-way .anim-focus-node{fill:none;stroke:var(--accent,#1A7F8E);stroke-width:2.5;stroke-dasharray:5 4}
+.anim-tcp-three-way .anim-focus-edge{fill:none;stroke:var(--accent,#1A7F8E);stroke-width:4;stroke-dasharray:6 5;opacity:.9}
+.anim-tcp-three-way .anim-caption{position:relative;height:48px;margin:4px 0 2px;font:12px/1.5 "Microsoft YaHei",sans-serif;color:var(--ink,#12293d)}
+.anim-tcp-three-way .anim-cap{position:absolute;inset:0;opacity:0;display:flex;gap:8px;align-items:baseline}
+.anim-tcp-three-way .anim-cap:first-child{opacity:1}
+.anim-tcp-three-way .anim-cap-no{font:600 10px/1.5 Consolas,monospace;color:var(--accent,#1A7F8E)}
+.anim-tcp-three-way .anim-cap strong{font-weight:600}.anim-cap span{color:var(--muted,#5b7283)}
+.anim-tcp-three-way .anim-progress{height:2px;background:var(--line,#C9D8E0);margin:2px 0 0;overflow:hidden}
+.anim-tcp-three-way .anim-progress i{display:block;height:100%;width:0;background:var(--accent,#1A7F8E)}
+.anim-tcp-three-way .anim-steps{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:3px;font:11.5px/1.55 "Microsoft YaHei",sans-serif;color:var(--muted,#5b7283)}
+.anim-tcp-three-way .anim-steps li{display:flex;gap:7px;align-items:baseline}
+.anim-tcp-three-way .anim-steps b{font:600 10px/1.5 Consolas,monospace;color:var(--accent,#1A7F8E);min-width:18px}
+.anim-tcp-three-way .tone-accent{--tone:var(--accent,#1A7F8E)}
+.anim-tcp-three-way .tone-ink{--tone:var(--ink,#12293d)}
+.anim-tcp-three-way .tone-muted{--tone:var(--muted,#5b7283)}
+.anim-tcp-three-way .tone-warn{--tone:#b45309}
+.anim-tcp-three-way .tone-ok{--tone:#0f766e}
+html:has(#night:checked) .anim-tcp-three-way{background:#0f1e2a;border-color:#24404f}
+html:has(#night:checked) .anim-tcp-three-way .anim-box{fill:#122836;stroke:#3f5b6b}
+html:has(#night:checked) .anim-tcp-three-way .anim-label{fill:#e6f2f8}
+html:has(#night:checked) .anim-tcp-three-way .anim-detail,html:has(#night:checked) .anim-tcp-three-way .anim-edge-label,html:has(#night:checked) .anim-tcp-three-way .anim-steps{fill:#9fb6c4;color:#9fb6c4}
+html:has(#night:checked) .anim-tcp-three-way .anim-link{stroke:#5f7d8c}
+@keyframes anim-tcp-three-way-node-client{0%,0%{opacity:0;transform:scale(.965)}4%,100%{opacity:1;transform:none}}
+.anim-tcp-three-way .anim-node[data-node="client"]{animation-name:anim-tcp-three-way-node-client;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both;transform-box:fill-box;transform-origin:center}
+@keyframes anim-tcp-three-way-node-server{0%,32%{opacity:0;transform:scale(.965)}36%,100%{opacity:1;transform:none}}
+.anim-tcp-three-way .anim-node[data-node="server"]{animation-name:anim-tcp-three-way-node-server;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both;transform-box:fill-box;transform-origin:center}
+@keyframes anim-tcp-three-way-edge-syn{0%,0%{opacity:0;stroke-dashoffset:100}1%{opacity:1;stroke-dashoffset:100}10%,100%{opacity:1;stroke-dashoffset:0}}
+.anim-tcp-three-way .anim-edge[data-edge="syn"]{animation-name:anim-tcp-three-way-edge-syn;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+.anim-tcp-three-way .anim-edge[data-edge="syn"] .anim-link{animation-name:anim-tcp-three-way-edge-syn;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+@keyframes anim-tcp-three-way-edge-synack{0%,32%{opacity:0;stroke-dashoffset:100}33%{opacity:1;stroke-dashoffset:100}42%,100%{opacity:1;stroke-dashoffset:0}}
+.anim-tcp-three-way .anim-edge[data-edge="synack"]{animation-name:anim-tcp-three-way-edge-synack;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+.anim-tcp-three-way .anim-edge[data-edge="synack"] .anim-link{animation-name:anim-tcp-three-way-edge-synack;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+@keyframes anim-tcp-three-way-edge-ack{0%,64%{opacity:0;stroke-dashoffset:100}65%{opacity:1;stroke-dashoffset:100}74%,100%{opacity:1;stroke-dashoffset:0}}
+.anim-tcp-three-way .anim-edge[data-edge="ack"]{animation-name:anim-tcp-three-way-edge-ack;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+.anim-tcp-three-way .anim-edge[data-edge="ack"] .anim-link{animation-name:anim-tcp-three-way-edge-ack;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+@keyframes anim-tcp-three-way-packet-syn{0%,0%{opacity:0;transform:translate(314px,180px)}0.6%{opacity:1;transform:translate(314px,180px)}0.88%{opacity:1;transform:translate(324.29px,166.22px)}1.75%{opacity:1;transform:translate(335.62px,156.38px)}2.63%{opacity:1;transform:translate(347.64px,150.47px)}3.5%{opacity:1;transform:translate(360px,148.5px)}4.38%{opacity:1;transform:translate(372.36px,150.47px)}5.25%{opacity:1;transform:translate(384.38px,156.38px)}6.13%{opacity:1;transform:translate(395.71px,166.22px)}7%{opacity:1;transform:translate(406px,180px)}8%,100%{opacity:0;transform:translate(406px,180px)}}
+.anim-tcp-three-way .anim-edge[data-edge="syn"] .anim-packet{animation:anim-tcp-three-way-packet-syn var(--anim-total) linear infinite both}
+@keyframes anim-tcp-three-way-packet-synack{0%,32%{opacity:0;transform:translate(406px,180px)}32.6%{opacity:1;transform:translate(406px,180px)}32.88%{opacity:1;transform:translate(394.5px,180px)}33.75%{opacity:1;transform:translate(383px,180px)}34.63%{opacity:1;transform:translate(371.5px,180px)}35.5%{opacity:1;transform:translate(360px,180px)}36.38%{opacity:1;transform:translate(348.5px,180px)}37.25%{opacity:1;transform:translate(337px,180px)}38.13%{opacity:1;transform:translate(325.5px,180px)}39%{opacity:1;transform:translate(314px,180px)}40%,100%{opacity:0;transform:translate(314px,180px)}}
+.anim-tcp-three-way .anim-edge[data-edge="synack"] .anim-packet{animation:anim-tcp-three-way-packet-synack var(--anim-total) linear infinite both}
+@keyframes anim-tcp-three-way-packet-ack{0%,64%{opacity:0;transform:translate(314px,180px)}64.6%{opacity:1;transform:translate(314px,180px)}64.88%{opacity:1;transform:translate(324.29px,193.78px)}65.75%{opacity:1;transform:translate(335.62px,203.63px)}66.63%{opacity:1;transform:translate(347.64px,209.53px)}67.5%{opacity:1;transform:translate(360px,211.5px)}68.38%{opacity:1;transform:translate(372.36px,209.53px)}69.25%{opacity:1;transform:translate(384.38px,203.63px)}70.13%{opacity:1;transform:translate(395.71px,193.78px)}71%{opacity:1;transform:translate(406px,180px)}72%,100%{opacity:0;transform:translate(406px,180px)}}
+.anim-tcp-three-way .anim-edge[data-edge="ack"] .anim-packet{animation:anim-tcp-three-way-packet-ack var(--anim-total) linear infinite both}
+@keyframes anim-tcp-three-way-pulse{0%,100%{stroke-opacity:.4}50%{stroke-opacity:1}}
+.anim-tcp-three-way .anim-focus-node,.anim-tcp-three-way .anim-focus-edge{animation:anim-tcp-three-way-pulse 1.25s ease-in-out infinite}
+@keyframes anim-tcp-three-way-step-s1{0%,0%{opacity:0}0.4%,32%{opacity:1}32.4%,100%{opacity:0}}
+@keyframes anim-tcp-three-way-cap-s1{0%,0%{opacity:0;transform:translateY(4px)}2%,32%{opacity:1;transform:none}32.4%,100%{opacity:0;transform:translateY(4px)}}
+.anim-tcp-three-way .anim-focus[data-step="s1"]{animation-name:anim-tcp-three-way-step-s1;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+.anim-tcp-three-way .anim-cap[data-step="s1"]{animation-name:anim-tcp-three-way-cap-s1;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+@keyframes anim-tcp-three-way-step-s2{0%,32%{opacity:0}32.4%,64%{opacity:1}64.4%,100%{opacity:0}}
+@keyframes anim-tcp-three-way-cap-s2{0%,32%{opacity:0;transform:translateY(4px)}34%,64%{opacity:1;transform:none}64.4%,100%{opacity:0;transform:translateY(4px)}}
+.anim-tcp-three-way .anim-focus[data-step="s2"]{animation-name:anim-tcp-three-way-step-s2;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+.anim-tcp-three-way .anim-cap[data-step="s2"]{animation-name:anim-tcp-three-way-cap-s2;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+@keyframes anim-tcp-three-way-step-s3{0%,64%{opacity:0}64.4%,100%{opacity:1}}
+@keyframes anim-tcp-three-way-cap-s3{0%,64%{opacity:0;transform:translateY(4px)}66%,100%{opacity:1;transform:none}}
+.anim-tcp-three-way .anim-focus[data-step="s3"]{animation-name:anim-tcp-three-way-step-s3;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+.anim-tcp-three-way .anim-cap[data-step="s3"]{animation-name:anim-tcp-three-way-cap-s3;animation-duration:var(--anim-total);animation-timing-function:cubic-bezier(.16,1,.3,1);animation-iteration-count:infinite;animation-fill-mode:both}
+@keyframes anim-tcp-three-way-progress{from{width:0}to{width:100%}}
+.anim-tcp-three-way .anim-progress i{animation:anim-tcp-three-way-progress var(--anim-total) linear infinite both}
+@keyframes anim-tcp-three-way-playhead{from{transform:translateX(0)}to{transform:translateX(612px)}}
+.anim-tcp-three-way .anim-playhead{stroke:var(--accent,#1A7F8E);stroke-width:2;animation:anim-tcp-three-way-playhead var(--anim-total) linear infinite both}
+#anim-tcp-three-way-pause:checked ~ .anim-stage{--anim-run:paused}
+#animation-tcp-three-way .anim-stage,#animation-tcp-three-way .anim-stage *{animation-play-state:var(--anim-run,running)}
+@media (prefers-reduced-motion: reduce){.anim-tcp-three-way .anim-node,.anim-tcp-three-way .anim-link,.anim-tcp-three-way .anim-focus,.anim-tcp-three-way .anim-focus-node,.anim-tcp-three-way .anim-focus-edge,.anim-tcp-three-way .anim-packet,.anim-tcp-three-way .anim-playhead,.anim-tcp-three-way .anim-cap,.anim-tcp-three-way .anim-progress i{animation:none!important}.anim-tcp-three-way .anim-edge{animation:none!important;opacity:1!important}.anim-tcp-three-way .anim-caption{display:none}.anim-tcp-three-way .anim-node,.anim-tcp-three-way .anim-link{opacity:1!important;stroke-dashoffset:0!important;transform:none!important}}
+@media print{.anim-tcp-three-way .anim-tools,.anim-tcp-three-way .anim-caption,.anim-tcp-three-way .anim-progress,.anim-tcp-three-way .anim-packet,.anim-tcp-three-way .anim-playhead{display:none!important}.anim-tcp-three-way .anim-edge{animation:none!important;opacity:1!important}.anim-tcp-three-way .anim-node,.anim-tcp-three-way .anim-link{animation:none!important;opacity:1!important;stroke-dashoffset:0!important;transform:none!important}.anim-tcp-three-way .anim-focus{display:none!important}.anim-tcp-three-way .anim-steps{margin-top:6px}}
+</style></head>
+<body><input type="checkbox" id="night" class="night-toggle" aria-label="夜间模式"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">技术学习</p><h1>TCP 三次握手：为什么两次不够</h1><p class="lead">用三次报文把“双方都能发、都能收”确认清楚；再用状态机解释 SYN、ACK 与半连接队列。</p><p class="keywords" style="margin:14px 0 0;display:flex;flex-wrap:wrap;gap:6px"><a href="#section-why" title="跳到首次出现" style="font:11px/1.6 Consolas,monospace;color:#1A7F8E;border:1px solid #C9D8E0;border-radius:999px;padding:2px 9px;text-decoration:none">TCP</a><a href="#section-handshake" title="跳到首次出现" style="font:11px/1.6 Consolas,monospace;color:#1A7F8E;border:1px solid #C9D8E0;border-radius:999px;padding:2px 9px;text-decoration:none">三次握手</a><a href="#section-handshake" title="跳到首次出现" style="font:11px/1.6 Consolas,monospace;color:#1A7F8E;border:1px solid #C9D8E0;border-radius:999px;padding:2px 9px;text-decoration:none">SYN</a><a href="#section-handshake" title="跳到首次出现" style="font:11px/1.6 Consolas,monospace;color:#1A7F8E;border:1px solid #C9D8E0;border-radius:999px;padding:2px 9px;text-decoration:none">状态机</a></p></header><nav aria-label="章节导航"><a class="num" href="#section-why" title="为什么需要握手">1</a><a class="num" href="#section-handshake" title="三次报文：SYN → SYN+ACK → ACK">2</a><a class="num" href="#section-states" title="状态变化：报文走到哪一步">3</a><a class="num" href="#section-two" title="为什么两次不够">4</a><a class="num" href="#section-loss" title="丢包与重传">5</a><a class="num" href="#section-myths" title="五个常见误区">6</a><a class="num" href="#section-security" title="安全边界：SYN Flood 与半连接">7</a><a class="num" href="#section-transfer" title="迁移任务：用抓包验证三次握手">8</a><a href="#objectives">学习目标</a><a href="#practice">自测与错题</a></nav><section class="objectives" id="objectives"><h2>学习目标与验收标准</h2><ul><li id="objective-o1"><strong>目标 1</strong> 能复述三次握手的报文顺序并解释两次为什么不够<ul class="criteria"><li>能画出 SYN / SYN+ACK / ACK</li><li>能说明两次无法确认客户端接收能力</li></ul><p class="source">对应章节：<a href="#section-why">为什么需要握手</a>、<a href="#section-handshake">三次报文：SYN → SYN+ACK → ACK</a>、<a href="#section-two">为什么两次不够</a></p></li><li id="objective-o2"><strong>目标 2</strong> 能把报文与 TCP 状态对应起来<ul class="criteria"><li>能说出 SYN-SENT / SYN-RCVD</li><li>能说出 ESTABLISHED 的条件</li></ul><p class="source">对应章节：<a href="#section-states">状态变化：报文走到哪一步</a>、<a href="#section-loss">丢包与重传</a></p></li><li id="objective-o3"><strong>目标 3</strong> 能定位常见的握手异常<ul class="criteria"><li>能区分 SYN 丢失与 ACK 丢失</li><li>能解释半连接队列与 SYN Flood</li></ul><p class="source">对应章节：<a href="#section-myths">五个常见误区</a>、<a href="#section-security">安全边界：SYN Flood 与半连接</a>、<a href="#section-transfer">迁移任务：用抓包验证三次握手</a></p></li></ul><p class="source">验收标准用于自测：每条都能做到，才算完成这个目标。</p></section><section id="section-why" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>为什么需要握手</h2><p>TCP 是可靠、面向连接的协议。连接建立前，双方要确认两件事：彼此都能发送、都能接收，并同步各自的初始序列号。</p>
+<aside class="callout"><strong>提示</strong><p>握手不是“打个招呼”，而是在不可靠的网络上建立可用的双向通道。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-handshake">下一节：三次报文：SYN → SYN+ACK → ACK →</a></p></section>
+<section id="section-handshake" data-no="02"><p class="eyebrow">补充解释</p><h2><span class="sec-no">02</span>三次报文：SYN → SYN+ACK → ACK</h2><figure class="anim-tcp-three-way anim-figure" id="animation-tcp-three-way" aria-labelledby="anim-tcp-three-way-title"><input class="anim-pause" type="checkbox" id="anim-tcp-three-way-pause" aria-label="暂停或继续动画"><figcaption class="anim-head"><span>TCP 三次握手</span><small>流程 · 5s · 循环</small></figcaption><div class="anim-tools"><label class="anim-pause-label" for="anim-tcp-three-way-pause">暂停 / 继续</label><span>按时间轴自动播放 · 可打印</span></div><div class="anim-stage" style="--anim-total:5s"><svg viewBox="0 0 720 360" role="img" aria-label="客户端与服务器之间三次报文交换的动画示意"><title id="anim-tcp-three-way-title">TCP 三次握手</title><desc id="anim-tcp-three-way-desc">客户端与服务器之间三次报文交换的动画示意</desc><defs><marker id="anim-tcp-three-way-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="anim-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="anim-bg" x="0" y="0" width="720" height="360"/><g class="anim-edges"><g class="anim-edge tone-muted" data-edge="syn"><path class="anim-link" d="M 314 180 C 339.76 138, 380.24 138, 406 180" pathLength="100" marker-end="url(#anim-tcp-three-way-arrow)"/><circle class="anim-packet" r="3.4" cx="0" cy="0"/><text class="anim-edge-label" x="360" y="128" text-anchor="middle">SYN seq=x</text></g>
+<g class="anim-edge tone-muted" data-edge="synack"><path class="anim-link" d="M 406 180 L 314 180" pathLength="100" marker-end="url(#anim-tcp-three-way-arrow)"/><circle class="anim-packet" r="3.4" cx="0" cy="0"/><text class="anim-edge-label" x="360" y="168" text-anchor="middle">SYN+ACK</text></g>
+<g class="anim-edge tone-muted" data-edge="ack"><path class="anim-link" d="M 314 180 C 339.76 222, 380.24 222, 406 180" pathLength="100" marker-end="url(#anim-tcp-three-way-arrow)"/><circle class="anim-packet" r="3.4" cx="0" cy="0"/><text class="anim-edge-label" x="360" y="212" text-anchor="middle">ACK</text></g></g><g class="anim-nodes"><g class="anim-node tone-accent" data-node="client"><rect class="anim-box" x="160" y="149" width="150" height="62" rx="7"/><text class="anim-label" x="235" y="185" text-anchor="middle">客户端</text></g>
+<g class="anim-node tone-ink" data-node="server"><rect class="anim-box" x="410" y="149" width="150" height="62" rx="7"/><text class="anim-label" x="485" y="185" text-anchor="middle">服务器</text></g></g><g class="anim-focuses"><g class="anim-focus" data-step="s1"><rect class="anim-focus-node" x="155" y="144" width="160" height="72" rx="10"/><path class="anim-focus-edge" d="M 314 180 C 339.76 138, 380.24 138, 406 180" pathLength="100"/></g>
+<g class="anim-focus" data-step="s2"><rect class="anim-focus-node" x="405" y="144" width="160" height="72" rx="10"/><path class="anim-focus-edge" d="M 406 180 L 314 180" pathLength="100"/></g>
+<g class="anim-focus" data-step="s3"><rect class="anim-focus-node" x="155" y="144" width="160" height="72" rx="10"/><rect class="anim-focus-node" x="405" y="144" width="160" height="72" rx="10"/><path class="anim-focus-edge" d="M 314 180 C 339.76 222, 380.24 222, 406 180" pathLength="100"/></g></g></svg><div class="anim-caption" aria-hidden="true"><p class="anim-cap" data-step="s1"><span class="anim-cap-no">01</span><strong>客户端发 SYN</strong><span>进入 SYN-SENT</span></p><p class="anim-cap" data-step="s2"><span class="anim-cap-no">02</span><strong>服务器回 SYN+ACK</strong><span>进入 SYN-RCVD</span></p><p class="anim-cap" data-step="s3"><span class="anim-cap-no">03</span><strong>客户端回 ACK</strong><span>双方 ESTABLISHED</span></p></div><div class="anim-progress" aria-hidden="true"><i></i></div></div><ol class="anim-steps"><li data-step="s1"><b>01</b><span><strong>客户端发 SYN</strong> · 进入 SYN-SENT</span></li><li data-step="s2"><b>02</b><span><strong>服务器回 SYN+ACK</strong> · 进入 SYN-RCVD</span></li><li data-step="s3"><b>03</b><span><strong>客户端回 ACK</strong> · 双方 ESTABLISHED</span></li></ol><p class="anim-note source">第三次 ACK 后双方进入 ESTABLISHED；动画只展示时序，不代替状态机细节。</p></figure>
+<p>三个报文各自携带序列号；第三次 ACK 让服务器确认“客户端确实收到了我的 SYN+ACK”。</p><p class="source">补充解释，不是原文摘录</p><p class="next-link"><a href="#section-states">下一节：状态变化：报文走到哪一步 →</a></p></section>
+<section id="section-states" data-no="03"><p class="eyebrow">补充解释</p><h2><span class="sec-no">03</span>状态变化：报文走到哪一步</h2><table><thead><tr><th scope="col">时刻</th><th scope="col">客户端</th><th scope="col">服务器</th><th scope="col">说明</th></tr></thead><tbody><tr><td>初始</td><td>CLOSED</td><td>LISTEN</td><td>服务器等待连接</td></tr><tr><td>发 SYN</td><td>SYN-SENT</td><td>LISTEN</td><td>客户端主动打开</td></tr><tr><td>收 SYN</td><td>SYN-SENT</td><td>SYN-RCVD</td><td>服务器回 SYN+ACK</td></tr><tr><td>收 SYN+ACK</td><td>ESTABLISHED</td><td>SYN-RCVD</td><td>客户端回 ACK</td></tr><tr><td>收 ACK</td><td>ESTABLISHED</td><td>ESTABLISHED</td><td>连接可用</td></tr></tbody></table>
+<p>第三次 ACK 丢失时，客户端已经 ESTABLISHED，服务器还停在 SYN-RCVD；这解释了“客户端能发、服务器却认为没连上”的现象。</p><p class="source">补充解释，不是原文摘录</p><p class="next-link"><a href="#section-two">下一节：为什么两次不够 →</a></p></section>
+<section id="section-two" data-no="04"><p class="eyebrow">补充解释</p><h2><span class="sec-no">04</span>为什么两次不够</h2><ul><li>两次只能确认：客户端能发、服务器能收；以及服务器能发、客户端能收（但服务器不知道客户端收到了）。</li><li>第三次 ACK 让服务器确认客户端的接收能力，也避免旧 SYN 造成错误连接。</li><li>两次握手无法让服务器区分“新连接”与“延迟到达的旧 SYN”。</li></ul>
+<aside class="callout"><strong>提示</strong><p>核心不是“多一次更保险”，而是第三次才让服务器获得“客户端已收到”的证据。</p></aside><p class="source">补充解释，不是原文摘录</p><p class="next-link"><a href="#section-loss">下一节：丢包与重传 →</a></p></section>
+<section id="section-loss" data-no="05"><p class="eyebrow">补充解释</p><h2><span class="sec-no">05</span>丢包与重传</h2><table><thead><tr><th scope="col">丢失的报文</th><th scope="col">客户端</th><th scope="col">服务器</th><th scope="col">结果</th></tr></thead><tbody><tr><td>SYN</td><td>重传 SYN</td><td>看不到连接</td><td>超时后重试</td></tr><tr><td>SYN+ACK</td><td>重传 SYN</td><td>SYN-RCVD 等待</td><td>服务器超时回收</td></tr><tr><td>ACK</td><td>ESTABLISHED</td><td>SYN-RCVD</td><td>服务器重传 SYN+ACK</td></tr></tbody></table>
+<p>握手阶段的重传由内核定时器处理；应用层看到的是连接建立变慢或失败，而不是“报文一定丢了一次”。</p><p class="source">补充解释，不是原文摘录</p><p class="next-link"><a href="#section-myths">下一节：五个常见误区 →</a></p></section>
+<section id="section-myths" data-no="06"><p class="eyebrow">补充解释</p><h2><span class="sec-no">06</span>五个常见误区</h2><table><thead><tr><th scope="col">说法</th><th scope="col">问题</th><th scope="col">更准确的说法</th></tr></thead><tbody><tr><td>三次握手保证数据不丢</td><td>握手只建立连接</td><td>可靠性靠序列号、ACK、重传</td></tr><tr><td>SYN 不占资源</td><td>服务器会建半连接</td><td>SYN 队列可能被占满</td></tr><tr><td>ACK 丢失无所谓</td><td>服务器停在 SYN-RCVD</td><td>需要重传 SYN+ACK</td></tr><tr><td>握手一定 3 个包</td><td>可能带数据或选项</td><td>通常是 3 个报文，但可携带选项</td></tr><tr><td>客户端先 ESTABLISHED 就通了</td><td>服务器可能还没确认</td><td>双向都 ESTABLISHED 才稳定</td></tr></tbody></table>
+<aside class="callout"><strong>提示</strong><p>看抓包时先看双方状态，不要只看“客户端已经 ESTABLISHED”。</p></aside><p class="source">补充解释，不是原文摘录</p><p class="next-link"><a href="#section-security">下一节：安全边界：SYN Flood 与半连接 →</a></p></section>
+<section id="section-security" data-no="07"><p class="eyebrow">补充解释</p><h2><span class="sec-no">07</span>安全边界：SYN Flood 与半连接</h2><p>服务器收到 SYN 后要分配半连接资源；大量伪造源地址的 SYN 会占满 SYN 队列，这就是 SYN Flood 的资源耗尽路径。</p>
+<ul><li>SYN Cookie 把状态编码进序列号，减少半连接存储。</li><li>限速、代理、清洗设备只能缓解，不改变握手语义。</li><li>不要用“握手成功”推断对端身份可信。</li></ul><p class="source">补充解释，不是原文摘录</p><p class="next-link"><a href="#section-transfer">下一节：迁移任务：用抓包验证三次握手 →</a></p></section>
+<section id="section-transfer" data-no="08"><p class="eyebrow">补充解释</p><h2><span class="sec-no">08</span>迁移任务：用抓包验证三次握手</h2><ul><li>在本地抓一次访问网站的握手，标出三个报文的 seq/ack。</li><li>人为丢弃第三个 ACK，观察服务器是否重传 SYN+ACK。</li><li>画一张状态表，解释“客户端已 ESTABLISHED、服务器仍 SYN-RCVD”的抓包。</li></ul>
+<table><thead><tr><th scope="col">自评</th><th scope="col">初级</th><th scope="col">中级</th><th scope="col">高级</th></tr></thead><tbody><tr><td>报文</td><td>能背顺序</td><td>能读 seq/ack</td><td>能解释选项与序列号</td></tr><tr><td>状态</td><td>知道 3 个状态</td><td>能画迁移</td><td>能定位半连接</td></tr><tr><td>异常</td><td>知道会重传</td><td>能区分丢包</td><td>能解释 SYN Flood</td></tr></tbody></table><p class="source">补充解释，不是原文摘录</p></section><section class="practice" id="practice"><style>.practice-hint{font-size:12.5px;color:var(--muted,#6f665c)}.practice-list{list-style:none;padding:0;margin:14px 0}.practice-item{border-top:1px solid var(--rule,#e3dccf);padding:10px 0}.practice-item summary{display:flex;gap:10px;align-items:baseline;cursor:pointer;list-style:none}.practice-item summary::-webkit-details-marker{display:none}.practice-item summary:before{content:"▸";color:var(--accent,var(--coral,#1a7f8e));font-size:12px;flex:none}.practice-item[open] summary:before{content:"▾"}.pi-no{font:600 11px/1.6 Consolas,monospace;color:var(--accent,var(--coral,#1a7f8e));flex:none}.pi-q{flex:1;font-weight:600}.pi-meta{font-size:12px;color:var(--muted,#6f665c);white-space:nowrap;flex:none}.pi-body{margin:10px 0 0 26px;padding:10px 12px;background:rgba(127,127,127,.06);border-left:2px solid var(--accent,var(--coral,#1a7f8e))}.practice-note{font-size:13px;color:var(--muted,#6f665c)}.practice-key{display:none}@media print{.practice-list,.practice-hint{display:none}.practice-key{display:block;break-before:page}.practice-key table{font-size:10pt}}</style><h2>自测与错题</h2><p class="source">还没有真实作答；演示作答 3 题，不计入掌握。</p><p class="practice-hint">先自己作答，再展开「核对答案」；答案默认不显示，打印时另附答案页。</p><ol class="practice-list"><li class="practice-item simulated"><details><summary><span class="pi-no">01</span><span class="pi-q">两次握手能否确认客户端能收到服务器报文？</span><span class="pi-meta">演示，不计入 · 答对</span></summary><div class="pi-body"><p><strong>参考答案</strong> 不能；客户端是否收到 SYN+ACK 需要第三次 ACK 才能让服务器确认。</p><p class="source">目标：目标 1 · 记录：p1</p></div></details></li><li class="practice-item simulated"><details><summary><span class="pi-no">02</span><span class="pi-q">服务器收到 SYN 后进入什么状态？</span><span class="pi-meta">演示，不计入 · 答错</span></summary><div class="pi-body"><p><strong>参考答案</strong> SYN-RCVD，不是 ESTABLISHED；还要等 ACK。</p><p class="source">目标：目标 2 · 记录：p2</p></div></details></li><li class="practice-item simulated"><details><summary><span class="pi-no">03</span><span class="pi-q">SYN 丢失和 ACK 丢失的现象有什么不同？</span><span class="pi-meta">演示，不计入 · 未作答</span></summary><div class="pi-body"><p><strong>参考答案</strong> SYN 丢失时服务器看不到连接；ACK 丢失时服务器停在 SYN-RCVD，客户端已 ESTABLISHED。</p><p class="source">目标：目标 3 · 记录：p3</p></div></details></li></ol></section><div class="practice-key" aria-label="自测答案页"><h2>自测答案页（打印用）</h2><p class="source">答案单独成页，便于先做后对；屏幕上请用上方折叠答案。</p><table><thead><tr><th scope="col">题号</th><th scope="col">题目</th><th scope="col">参考答案</th><th scope="col">判定</th><th scope="col">目标</th><th scope="col">性质</th></tr></thead><tbody><tr class="simulated"><td>01</td><td>两次握手能否确认客户端能收到服务器报文？</td><td>不能；客户端是否收到 SYN+ACK 需要第三次 ACK 才能让服务器确认。</td><td>答对</td><td>目标 1</td><td>演示，不计入</td></tr><tr class="simulated"><td>02</td><td>服务器收到 SYN 后进入什么状态？</td><td>SYN-RCVD，不是 ESTABLISHED；还要等 ACK。</td><td>答错</td><td>目标 2</td><td>演示，不计入</td></tr><tr class="simulated"><td>03</td><td>SYN 丢失和 ACK 丢失的现象有什么不同？</td><td>SYN 丢失时服务器看不到连接；ACK 丢失时服务器停在 SYN-RCVD，客户端已 ESTABLISHED。</td><td>未作答</td><td>目标 3</td><td>演示，不计入</td></tr></tbody></table></div><section><h2>原始材料与来源</h2><ol class="sources"><li id="source-S1"><strong>[S1] 自写讲义：TCP 连接建立（2026-10-27）</strong><blockquote>TCP 通过 SYN、SYN+ACK、ACK 三个报文交换建立连接；双方需要确认彼此的发送与接收能力，并同步初始序列号。</blockquote></li></ol></section><section class="mindmap" id="outline"><h2>学习路径</h2><ol style="column-count:2;column-gap:38px;list-style:none;padding:0;margin:12px 0 4px"><li style="break-inside:avoid;margin:0 0 15px"><a href="#section-why" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none"><span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">01</span><span style="font-size:14px;line-height:1.55">为什么需要握手</span></a></li><li style="break-inside:avoid;margin:0 0 15px"><a href="#section-handshake" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none"><span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">02</span><span style="font-size:14px;line-height:1.55">三次报文：SYN → SYN+ACK → ACK</span></a></li><li style="break-inside:avoid;margin:0 0 15px"><a href="#section-states" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none"><span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">03</span><span style="font-size:14px;line-height:1.55">状态变化：报文走到哪一步</span></a></li><li style="break-inside:avoid;margin:0 0 15px"><a href="#section-two" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none"><span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">04</span><span style="font-size:14px;line-height:1.55">为什么两次不够</span></a></li><li style="break-inside:avoid;margin:0 0 15px"><a href="#section-loss" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none"><span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">05</span><span style="font-size:14px;line-height:1.55">丢包与重传</span></a></li><li style="break-inside:avoid;margin:0 0 15px"><a href="#section-myths" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none"><span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">06</span><span style="font-size:14px;line-height:1.55">五个常见误区</span></a></li><li style="break-inside:avoid;margin:0 0 15px"><a href="#section-security" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none"><span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">07</span><span style="font-size:14px;line-height:1.55">安全边界：SYN Flood 与半连接</span></a></li><li style="break-inside:avoid;margin:0 0 15px"><a href="#section-transfer" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none"><span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">08</span><span style="font-size:14px;line-height:1.55">迁移任务：用抓包验证三次握手</span></a></li></ol><p class="source">先读 01，再按编号往下：概念 → 动手 → 排错与迁移；点击标题跳到对应章节。</p></section><section class="review" id="review"><h2>复习节奏</h2><table><thead><tr><th scope="col">目标</th><th scope="col">内容</th><th scope="col">依据</th><th scope="col">下次复习</th></tr></thead><tbody><tr><td title="o1">目标 1</td><td>能复述三次握手的报文顺序并解释两次为什么不够</td><td>—</td><td>尚未练习</td></tr><tr><td title="o2">目标 2</td><td>能把报文与 TCP 状态对应起来</td><td>—</td><td>尚未练习</td></tr><tr><td title="o3">目标 3</td><td>能定位常见的握手异常</td><td>—</td><td>尚未练习</td></tr></tbody></table><p class="source">间隔只依据真实作答次数推算，不预测学习效果。</p></section><section><h2>知识结构图与复习记录</h2><p class="source">节点 8 个，关系 7 条；下表给出关系类型与依据。</p><ul><li><strong>为什么需要握手</strong> · 尚未评估</li><li><strong>三次报文：SYN → SYN+ACK → ACK</strong> · 尚未评估</li><li><strong>状态变化：报文走到哪一步</strong> · 尚未评估</li><li><strong>为什么两次不够</strong> · 尚未评估</li><li><strong>丢包与重传</strong> · 尚未评估</li><li><strong>五个常见误区</strong> · 尚未评估</li><li><strong>安全边界：SYN Flood 与半连接</strong> · 尚未评估</li><li><strong>迁移任务：用抓包验证三次握手</strong> · 尚未评估</li></ul><table><thead><tr><th scope="col">关联</th><th scope="col">依据</th></tr></thead><tbody><tr><td>为什么需要握手 → 是以下知识的前置 → 三次报文：SYN → SYN+ACK → ACK</td><td>按笔记顺序阅读</td></tr><tr><td>三次报文：SYN → SYN+ACK → ACK → 是以下知识的前置 → 状态变化：报文走到哪一步</td><td>按笔记顺序阅读</td></tr><tr><td>状态变化：报文走到哪一步 → 是以下知识的前置 → 为什么两次不够</td><td>按笔记顺序阅读</td></tr><tr><td>为什么两次不够 → 是以下知识的前置 → 丢包与重传</td><td>按笔记顺序阅读</td></tr><tr><td>丢包与重传 → 是以下知识的前置 → 五个常见误区</td><td>按笔记顺序阅读</td></tr><tr><td>五个常见误区 → 是以下知识的前置 → 安全边界：SYN Flood 与半连接</td><td>按笔记顺序阅读</td></tr><tr><td>安全边界：SYN Flood 与半连接 → 是以下知识的前置 → 迁移任务：用抓包验证三次握手</td><td>按笔记顺序阅读</td></tr></tbody></table><p class="source">关系可辅助安排复习，不能代替实际答题评估。</p></section><section class="portable-state"><h2>继续学习</h2><p>保存本文件，或复制以下 JSON。下次对话提供旧文件或 JSON 后，可继续更新；此处没有云端存储。</p><p>版本 1 · 首次生成 TCP 三次握手笔记</p><pre id="note-state">{
+  &quot;schemaVersion&quot;: 1,
+  &quot;note&quot;: {
+    &quot;schemaVersion&quot;: 1,
+    &quot;id&quot;: &quot;tcp-handshake&quot;,
+    &quot;revision&quot;: 1,
+    &quot;title&quot;: &quot;TCP 三次握手：为什么两次不够&quot;,
+    &quot;scene&quot;: &quot;tech&quot;,
+    &quot;style&quot;: &quot;style-b&quot;,
+    &quot;summary&quot;: &quot;用三次报文把“双方都能发、都能收”确认清楚；再用状态机解释 SYN、ACK 与半连接队列。&quot;,
+    &quot;keywords&quot;: [
+      &quot;TCP&quot;,
+      &quot;三次握手&quot;,
+      &quot;SYN&quot;,
+      &quot;状态机&quot;
+    ],
+    &quot;sources&quot;: [
+      {
+        &quot;id&quot;: &quot;S1&quot;,
+        &quot;label&quot;: &quot;自写讲义：TCP 连接建立（2026-10-27）&quot;,
+        &quot;text&quot;: &quot;TCP 通过 SYN、SYN+ACK、ACK 三个报文交换建立连接；双方需要确认彼此的发送与接收能力，并同步初始序列号。&quot;
+      }
+    ],
+    &quot;objectives&quot;: [
+      {
+        &quot;id&quot;: &quot;o1&quot;,
+        &quot;text&quot;: &quot;能复述三次握手的报文顺序并解释两次为什么不够&quot;,
+        &quot;criteria&quot;: [
+          &quot;能画出 SYN / SYN+ACK / ACK&quot;,
+          &quot;能说明两次无法确认客户端接收能力&quot;
+        ],
+        &quot;sectionIds&quot;: [
+          &quot;why&quot;,
+          &quot;handshake&quot;,
+          &quot;two&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;o2&quot;,
+        &quot;text&quot;: &quot;能把报文与 TCP 状态对应起来&quot;,
+        &quot;criteria&quot;: [
+          &quot;能说出 SYN-SENT / SYN-RCVD&quot;,
+          &quot;能说出 ESTABLISHED 的条件&quot;
+        ],
+        &quot;sectionIds&quot;: [
+          &quot;states&quot;,
+          &quot;loss&quot;
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;o3&quot;,
+        &quot;text&quot;: &quot;能定位常见的握手异常&quot;,
+        &quot;criteria&quot;: [
+          &quot;能区分 SYN 丢失与 ACK 丢失&quot;,
+          &quot;能解释半连接队列与 SYN Flood&quot;
+        ],
+        &quot;sectionIds&quot;: [
+          &quot;myths&quot;,
+          &quot;security&quot;,
+          &quot;transfer&quot;
+        ]
+      }
+    ],
+    &quot;practice&quot;: [
+      {
+        &quot;id&quot;: &quot;p1&quot;,
+        &quot;objectiveId&quot;: &quot;o1&quot;,
+        &quot;verdict&quot;: &quot;right&quot;,
+        &quot;simulated&quot;: true,
+        &quot;question&quot;: &quot;两次握手能否确认客户端能收到服务器报文？&quot;,
+        &quot;answer&quot;: &quot;不能；客户端是否收到 SYN+ACK 需要第三次 ACK 才能让服务器确认。&quot;
+      },
+      {
+        &quot;id&quot;: &quot;p2&quot;,
+        &quot;objectiveId&quot;: &quot;o2&quot;,
+        &quot;verdict&quot;: &quot;wrong&quot;,
+        &quot;simulated&quot;: true,
+        &quot;question&quot;: &quot;服务器收到 SYN 后进入什么状态？&quot;,
+        &quot;answer&quot;: &quot;SYN-RCVD，不是 ESTABLISHED；还要等 ACK。&quot;
+      },
+      {
+        &quot;id&quot;: &quot;p3&quot;,
+        &quot;objectiveId&quot;: &quot;o3&quot;,
+        &quot;verdict&quot;: &quot;skip&quot;,
+        &quot;simulated&quot;: true,
+        &quot;question&quot;: &quot;SYN 丢失和 ACK 丢失的现象有什么不同？&quot;,
+        &quot;answer&quot;: &quot;SYN 丢失时服务器看不到连接；ACK 丢失时服务器停在 SYN-RCVD，客户端已 ESTABLISHED。&quot;
+      }
+    ],
+    &quot;sections&quot;: [
+      {
+        &quot;id&quot;: &quot;why&quot;,
+        &quot;heading&quot;: &quot;为什么需要握手&quot;,
+        &quot;origin&quot;: &quot;source&quot;,
+        &quot;sourceIds&quot;: [
+          &quot;S1&quot;
+        ],
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;TCP 是可靠、面向连接的协议。连接建立前，双方要确认两件事：彼此都能发送、都能接收，并同步各自的初始序列号。&quot;
+          },
+          {
+            &quot;type&quot;: &quot;callout&quot;,
+            &quot;text&quot;: &quot;握手不是“打个招呼”，而是在不可靠的网络上建立可用的双向通道。&quot;
+          }
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;handshake&quot;,
+        &quot;heading&quot;: &quot;三次报文：SYN → SYN+ACK → ACK&quot;,
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: [],
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;animation&quot;,
+            &quot;id&quot;: &quot;tcp-three-way&quot;,
+            &quot;preset&quot;: &quot;flow&quot;,
+            &quot;title&quot;: &quot;TCP 三次握手&quot;,
+            &quot;alt&quot;: &quot;客户端与服务器之间三次报文交换的动画示意&quot;,
+            &quot;caption&quot;: &quot;第三次 ACK 后双方进入 ESTABLISHED；动画只展示时序，不代替状态机细节。&quot;,
+            &quot;loop&quot;: true,
+            &quot;nodes&quot;: [
+              {
+                &quot;id&quot;: &quot;client&quot;,
+                &quot;label&quot;: &quot;客户端&quot;,
+                &quot;tone&quot;: &quot;accent&quot;
+              },
+              {
+                &quot;id&quot;: &quot;server&quot;,
+                &quot;label&quot;: &quot;服务器&quot;,
+                &quot;tone&quot;: &quot;ink&quot;
+              }
+            ],
+            &quot;edges&quot;: [
+              {
+                &quot;id&quot;: &quot;syn&quot;,
+                &quot;from&quot;: &quot;client&quot;,
+                &quot;to&quot;: &quot;server&quot;,
+                &quot;label&quot;: &quot;SYN seq=x&quot;
+              },
+              {
+                &quot;id&quot;: &quot;synack&quot;,
+                &quot;from&quot;: &quot;server&quot;,
+                &quot;to&quot;: &quot;client&quot;,
+                &quot;label&quot;: &quot;SYN+ACK&quot;
+              },
+              {
+                &quot;id&quot;: &quot;ack&quot;,
+                &quot;from&quot;: &quot;client&quot;,
+                &quot;to&quot;: &quot;server&quot;,
+                &quot;label&quot;: &quot;ACK&quot;
+              }
+            ],
+            &quot;steps&quot;: [
+              {
+                &quot;id&quot;: &quot;s1&quot;,
+                &quot;label&quot;: &quot;客户端发 SYN&quot;,
+                &quot;detail&quot;: &quot;进入 SYN-SENT&quot;,
+                &quot;focus&quot;: [
+                  &quot;client&quot;,
+                  &quot;syn&quot;
+                ],
+                &quot;hold&quot;: 1.6
+              },
+              {
+                &quot;id&quot;: &quot;s2&quot;,
+                &quot;label&quot;: &quot;服务器回 SYN+ACK&quot;,
+                &quot;detail&quot;: &quot;进入 SYN-RCVD&quot;,
+                &quot;focus&quot;: [
+                  &quot;server&quot;,
+                  &quot;synack&quot;
+                ],
+                &quot;hold&quot;: 1.6
+              },
+              {
+                &quot;id&quot;: &quot;s3&quot;,
+                &quot;label&quot;: &quot;客户端回 ACK&quot;,
+                &quot;detail&quot;: &quot;双方 ESTABLISHED&quot;,
+                &quot;focus&quot;: [
+                  &quot;client&quot;,
+                  &quot;server&quot;,
+                  &quot;ack&quot;
+                ],
+                &quot;hold&quot;: 1.8
+              }
+            ]
+          },
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;三个报文各自携带序列号；第三次 ACK 让服务器确认“客户端确实收到了我的 SYN+ACK”。&quot;
+          }
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;states&quot;,
+        &quot;heading&quot;: &quot;状态变化：报文走到哪一步&quot;,
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: [],
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;table&quot;,
+            &quot;headers&quot;: [
+              &quot;时刻&quot;,
+              &quot;客户端&quot;,
+              &quot;服务器&quot;,
+              &quot;说明&quot;
+            ],
+            &quot;rows&quot;: [
+              [
+                &quot;初始&quot;,
+                &quot;CLOSED&quot;,
+                &quot;LISTEN&quot;,
+                &quot;服务器等待连接&quot;
+              ],
+              [
+                &quot;发 SYN&quot;,
+                &quot;SYN-SENT&quot;,
+                &quot;LISTEN&quot;,
+                &quot;客户端主动打开&quot;
+              ],
+              [
+                &quot;收 SYN&quot;,
+                &quot;SYN-SENT&quot;,
+                &quot;SYN-RCVD&quot;,
+                &quot;服务器回 SYN+ACK&quot;
+              ],
+              [
+                &quot;收 SYN+ACK&quot;,
+                &quot;ESTABLISHED&quot;,
+                &quot;SYN-RCVD&quot;,
+                &quot;客户端回 ACK&quot;
+              ],
+              [
+                &quot;收 ACK&quot;,
+                &quot;ESTABLISHED&quot;,
+                &quot;ESTABLISHED&quot;,
+                &quot;连接可用&quot;
+              ]
+            ]
+          },
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;第三次 ACK 丢失时，客户端已经 ESTABLISHED，服务器还停在 SYN-RCVD；这解释了“客户端能发、服务器却认为没连上”的现象。&quot;
+          }
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;two&quot;,
+        &quot;heading&quot;: &quot;为什么两次不够&quot;,
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: [],
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;list&quot;,
+            &quot;items&quot;: [
+              &quot;两次只能确认：客户端能发、服务器能收；以及服务器能发、客户端能收（但服务器不知道客户端收到了）。&quot;,
+              &quot;第三次 ACK 让服务器确认客户端的接收能力，也避免旧 SYN 造成错误连接。&quot;,
+              &quot;两次握手无法让服务器区分“新连接”与“延迟到达的旧 SYN”。&quot;
+            ]
+          },
+          {
+            &quot;type&quot;: &quot;callout&quot;,
+            &quot;text&quot;: &quot;核心不是“多一次更保险”，而是第三次才让服务器获得“客户端已收到”的证据。&quot;
+          }
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;loss&quot;,
+        &quot;heading&quot;: &quot;丢包与重传&quot;,
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: [],
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;table&quot;,
+            &quot;headers&quot;: [
+              &quot;丢失的报文&quot;,
+              &quot;客户端&quot;,
+              &quot;服务器&quot;,
+              &quot;结果&quot;
+            ],
+            &quot;rows&quot;: [
+              [
+                &quot;SYN&quot;,
+                &quot;重传 SYN&quot;,
+                &quot;看不到连接&quot;,
+                &quot;超时后重试&quot;
+              ],
+              [
+                &quot;SYN+ACK&quot;,
+                &quot;重传 SYN&quot;,
+                &quot;SYN-RCVD 等待&quot;,
+                &quot;服务器超时回收&quot;
+              ],
+              [
+                &quot;ACK&quot;,
+                &quot;ESTABLISHED&quot;,
+                &quot;SYN-RCVD&quot;,
+                &quot;服务器重传 SYN+ACK&quot;
+              ]
+            ]
+          },
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;握手阶段的重传由内核定时器处理；应用层看到的是连接建立变慢或失败，而不是“报文一定丢了一次”。&quot;
+          }
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;myths&quot;,
+        &quot;heading&quot;: &quot;五个常见误区&quot;,
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: [],
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;table&quot;,
+            &quot;headers&quot;: [
+              &quot;说法&quot;,
+              &quot;问题&quot;,
+              &quot;更准确的说法&quot;
+            ],
+            &quot;rows&quot;: [
+              [
+                &quot;三次握手保证数据不丢&quot;,
+                &quot;握手只建立连接&quot;,
+                &quot;可靠性靠序列号、ACK、重传&quot;
+              ],
+              [
+                &quot;SYN 不占资源&quot;,
+                &quot;服务器会建半连接&quot;,
+                &quot;SYN 队列可能被占满&quot;
+              ],
+              [
+                &quot;ACK 丢失无所谓&quot;,
+                &quot;服务器停在 SYN-RCVD&quot;,
+                &quot;需要重传 SYN+ACK&quot;
+              ],
+              [
+                &quot;握手一定 3 个包&quot;,
+                &quot;可能带数据或选项&quot;,
+                &quot;通常是 3 个报文，但可携带选项&quot;
+              ],
+              [
+                &quot;客户端先 ESTABLISHED 就通了&quot;,
+                &quot;服务器可能还没确认&quot;,
+                &quot;双向都 ESTABLISHED 才稳定&quot;
+              ]
+            ]
+          },
+          {
+            &quot;type&quot;: &quot;callout&quot;,
+            &quot;text&quot;: &quot;看抓包时先看双方状态，不要只看“客户端已经 ESTABLISHED”。&quot;
+          }
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;security&quot;,
+        &quot;heading&quot;: &quot;安全边界：SYN Flood 与半连接&quot;,
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: [],
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;paragraph&quot;,
+            &quot;text&quot;: &quot;服务器收到 SYN 后要分配半连接资源；大量伪造源地址的 SYN 会占满 SYN 队列，这就是 SYN Flood 的资源耗尽路径。&quot;
+          },
+          {
+            &quot;type&quot;: &quot;list&quot;,
+            &quot;items&quot;: [
+              &quot;SYN Cookie 把状态编码进序列号，减少半连接存储。&quot;,
+              &quot;限速、代理、清洗设备只能缓解，不改变握手语义。&quot;,
+              &quot;不要用“握手成功”推断对端身份可信。&quot;
+            ]
+          }
+        ]
+      },
+      {
+        &quot;id&quot;: &quot;transfer&quot;,
+        &quot;heading&quot;: &quot;迁移任务：用抓包验证三次握手&quot;,
+        &quot;origin&quot;: &quot;supplement&quot;,
+        &quot;sourceIds&quot;: [],
+        &quot;blocks&quot;: [
+          {
+            &quot;type&quot;: &quot;list&quot;,
+            &quot;items&quot;: [
+              &quot;在本地抓一次访问网站的握手，标出三个报文的 seq/ack。&quot;,
+              &quot;人为丢弃第三个 ACK，观察服务器是否重传 SYN+ACK。&quot;,
+              &quot;画一张状态表，解释“客户端已 ESTABLISHED、服务器仍 SYN-RCVD”的抓包。&quot;
+            ]
+          },
+          {
+            &quot;type&quot;: &quot;table&quot;,
+            &quot;headers&quot;: [
+              &quot;自评&quot;,
+              &quot;初级&quot;,
+              &quot;中级&quot;,
+              &quot;高级&quot;
+            ],
+            &quot;rows&quot;: [
+              [
+                &quot;报文&quot;,
+                &quot;能背顺序&quot;,
+                &quot;能读 seq/ack&quot;,
+                &quot;能解释选项与序列号&quot;
+              ],
+              [
+                &quot;状态&quot;,
+                &quot;知道 3 个状态&quot;,
+                &quot;能画迁移&quot;,
+                &quot;能定位半连接&quot;
+              ],
+              [
+                &quot;异常&quot;,
+                &quot;知道会重传&quot;,
+                &quot;能区分丢包&quot;,
+                &quot;能解释 SYN Flood&quot;
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  &quot;graph&quot;: {
+    &quot;nodes&quot;: [
+      {
+        &quot;id&quot;: &quot;n1&quot;,
+        &quot;label&quot;: &quot;为什么需要握手&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;why&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;n2&quot;,
+        &quot;label&quot;: &quot;三次报文：SYN → SYN+ACK → ACK&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;handshake&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;n3&quot;,
+        &quot;label&quot;: &quot;状态变化：报文走到哪一步&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;states&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;n4&quot;,
+        &quot;label&quot;: &quot;为什么两次不够&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;two&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;n5&quot;,
+        &quot;label&quot;: &quot;丢包与重传&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;loss&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;n6&quot;,
+        &quot;label&quot;: &quot;五个常见误区&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;myths&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;n7&quot;,
+        &quot;label&quot;: &quot;安全边界：SYN Flood 与半连接&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;security&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      },
+      {
+        &quot;id&quot;: &quot;n8&quot;,
+        &quot;label&quot;: &quot;迁移任务：用抓包验证三次握手&quot;,
+        &quot;sectionIds&quot;: [
+          &quot;transfer&quot;
+        ],
+        &quot;mastery&quot;: &quot;unknown&quot;,
+        &quot;evidence&quot;: []
+      }
+    ],
+    &quot;edges&quot;: [
+      {
+        &quot;from&quot;: &quot;n1&quot;,
+        &quot;to&quot;: &quot;n2&quot;,
+        &quot;type&quot;: &quot;prerequisite&quot;,
+        &quot;basis&quot;: &quot;按笔记顺序阅读&quot;
+      },
+      {
+        &quot;from&quot;: &quot;n2&quot;,
+        &quot;to&quot;: &quot;n3&quot;,
+        &quot;type&quot;: &quot;prerequisite&quot;,
+        &quot;basis&quot;: &quot;按笔记顺序阅读&quot;
+      },
+      {
+        &quot;from&quot;: &quot;n3&quot;,
+        &quot;to&quot;: &quot;n4&quot;,
+        &quot;type&quot;: &quot;prerequisite&quot;,
+        &quot;basis&quot;: &quot;按笔记顺序阅读&quot;
+      },
+      {
+        &quot;from&quot;: &quot;n4&quot;,
+        &quot;to&quot;: &quot;n5&quot;,
+        &quot;type&quot;: &quot;prerequisite&quot;,
+        &quot;basis&quot;: &quot;按笔记顺序阅读&quot;
+      },
+      {
+        &quot;from&quot;: &quot;n5&quot;,
+        &quot;to&quot;: &quot;n6&quot;,
+        &quot;type&quot;: &quot;prerequisite&quot;,
+        &quot;basis&quot;: &quot;按笔记顺序阅读&quot;
+      },
+      {
+        &quot;from&quot;: &quot;n6&quot;,
+        &quot;to&quot;: &quot;n7&quot;,
+        &quot;type&quot;: &quot;prerequisite&quot;,
+        &quot;basis&quot;: &quot;按笔记顺序阅读&quot;
+      },
+      {
+        &quot;from&quot;: &quot;n7&quot;,
+        &quot;to&quot;: &quot;n8&quot;,
+        &quot;type&quot;: &quot;prerequisite&quot;,
+        &quot;basis&quot;: &quot;按笔记顺序阅读&quot;
+      }
+    ]
+  },
+  &quot;history&quot;: [
+    {
+      &quot;revision&quot;: 1,
+      &quot;summary&quot;: &quot;首次生成 TCP 三次握手笔记&quot;
+    }
+  ]
+}</pre></section><p class="footer">全天候智慧学伴 · 离线可读 · 使用浏览器打印</p><nav class="pager" aria-label="章节翻页"><a href="#section-why" title="为什么需要握手">1</a><a href="#section-handshake" title="三次报文：SYN → SYN+ACK → ACK">2</a><a href="#section-states" title="状态变化：报文走到哪一步">3</a><a href="#section-two" title="为什么两次不够">4</a><a href="#section-loss" title="丢包与重传">5</a><a href="#section-myths" title="五个常见误区">6</a><a href="#section-security" title="安全边界：SYN Flood 与半连接">7</a><a href="#section-transfer" title="迁移任务：用抓包验证三次握手">8</a><a class="pager-top" href="#top" aria-label="回到顶部">↑</a></nav></main></body></html>

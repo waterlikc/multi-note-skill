@@ -20,13 +20,13 @@
 }
 ```
 
-id 稳定、不随排序变化；revision 为正整数。sources 可加 url（https），渲染为“原文”链接；只给读过的页面加。scene 为 tech/course/science/reading/meeting/research/project；style 为 style-a/b/c。
+id 稳定、不随排序变化；revision 为正整数。sources 可加 url（https），只给读过的页面加。scene 为 tech/course/science/reading/meeting/research/project；style 为 style-a/b/c。keywords 可选 1–8 个。compact 为 true 时章节 4–8、目标 2–4、自测 2–4；默认 8–16/3–6/3–6。
 
-块类型：paragraph、callout 用 text；list 用 items 字符串数组；code 用 text 与可选 language；table 用 headers 字符串数组与 rows 二维字符串数组，每行等宽。不接受原始 HTML。数学公式使用可离线读取的 Unicode 文本（如 Δy/Δx），复杂公式可由直接模式写静态 MathML 并附文本解释。
+块类型：paragraph/callout 用 text；list 用 items；code 用 text 与 language；table 用 headers 与 rows（每行等宽）；image 用内联 data:image/…;base64、alt 与 caption，禁止外链。不接受原始 HTML。公式用离线可读的 Unicode（如 Δy/Δx），复杂公式可写静态 MathML 并附文本解释。
 
 章节 origin 为 source / supplement / uncertain，对应来源材料 / 补充解释 / 需确认。source、uncertain 章节必须有 sourceIds；纯模型补充可用空数组但必须标 supplement。来源 text 是实际取得的原文片段，label 写页码/时间戳（未知则写未提供）；不编造引文。
 
-源码入口：`index.mjs` 导出 generateNote(note, state?)；命令行 `node cli/note.mjs render note.json note.html [state.json]`，也可直接以完整 state.json 作输入。JSON 校验、转义、套用一种模板，再原子写出 HTML；错误写 stderr 并返回非零退出码。
+源码入口：`index.mjs` 导出 generateNote(note, state?)；命令行 `node scripts/render.mjs note.json note.html [state.json]`，也可直接以完整 state.json 作输入；`node cli/note.mjs pack 笔记目录 课程包.html` 批量渲染并生成关键词索引。JSON 校验、转义、套用一种模板，再原子写出 HTML；错误写 stderr 并返回非零退出码。
 
 主题模板中的大写占位符由渲染器一次性替换；模型直接生成时保留 CSS，替换 header/main 内的示例，删除占位符注释。两种模式都必须包含标题、摘要、正文、来源；更新任务包含版本与变更摘要。
 
@@ -49,7 +49,7 @@ id 稳定、不随排序变化；revision 为正整数。sources 可加 url（ht
 
 ## 可选字段：practice（作答记录）
 
-用于自测错题与间隔复习；每条记录必须标明真实还是演示作答。
+用于自测错题与间隔复习；每条记录标明真实或演示。渲染先显示题目，答案收进「核对答案」；打印另附答案页。
 
 ```json
 {"id":"p1","objectiveId":"obj-slope","verdict":"right","simulated":false,
@@ -61,15 +61,11 @@ id 稳定、不随排序变化；revision 为正整数。sources 可加 url（ht
 - objectiveId 可选，一旦填写必须指向已有的学习目标。
 - **只有演示作答时，任何知识节点都不得给出掌握状态**（状态校验会拒绝）。
 
-## 交互版（可选）
+- practice 只放事实自测；迁移任务写成 supplement 章节，给自评标准，不放 practice（避免被当成可自动判分的题）。
 
-`render … --interactive` 内联三套 CSS，右上角切换排版、右下角翻页；含脚本，仅用于演示；默认导出无脚本单主题。
+## 导出脚本
 
-## 两个导出脚本
-
-`node cli/note.mjs cards` 导出 Anki CSV（目标/章节各一张卡，含逗号引号自动转义）；`node cli/note.mjs plan --days 7 [--start YYYY-MM-DD]` 生成按天排期、带复习项的单文件 HTML。
-
-旧入口 `scripts/*.mjs` 保留一版薄封装，命令与参数不变，便于已有脚本过渡。
+`node scripts/cards.mjs` 导出 Anki CSV；`node scripts/plan.mjs --days 7 [--start YYYY-MM-DD]` 生成按天排期 HTML。
 
 ## 深色模式
 

@@ -59,7 +59,8 @@ nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24
 .night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
 .night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
 .night-toggle-label:before{content:"◐ 夜间"}
-.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+.night-toggle:focus-visible+.night-toggle-label{outline:2px solid var(--accent)}
+html:has(#night:checked) .night-toggle-label:before{content:"◑ 白天"}
 body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
 @media print{.night-toggle,.night-toggle-label{display:none}}
 
@@ -70,6 +71,7 @@ body{padding-top:48px}
 .topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
 .topbar .night-toggle-label:before{color:inherit}
 @media print{.topbar{display:none}body{padding-top:0}}
+@media screen{
 html:has(#night:checked) body{background:#12100e;color:#d6cec2;background-image:none}
 html:has(#night:checked) main{background:#1a1714;border-color:#3a332c;box-shadow:none}
 html:has(#night:checked) header{border-color:#3a332c}
@@ -86,8 +88,15 @@ html:has(#night:checked) .sources blockquote{color:#d6cec2}
 html:has(#night:checked) .night-toggle-label{background:#1d1915;color:#d6cec2;border-color:#3a332c}
 html:has(#night:checked) .topbar{background:#070d12}
 html:has(#night:checked) .pager a{background:#1d1915;color:#d6cec2;border-color:#3a332c}
+html:has(#night:checked){color-scheme:dark}
+html:has(#night:checked) .footer{color:#a89d8f}
+html:has(#night:checked) .practice tr.wrong td{background:#2a1c18}
+html:has(#night:checked) svg rect[fill="#fff"]{fill:#1d1915;stroke:#3a332c}
+html:has(#night:checked) svg text{fill:#d6cec2}
+html:has(#night:checked) svg path{stroke:#4a4239}
+}
 </style></head>
-<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">课堂学习</p><h1>牛顿第二定律：合力决定加速度</h1><p class="lead">计算之前，先明确研究对象、参考系和合力。</p></header><nav aria-label="章节导航"><a href="#section-law">适用条件与公式</a><a href="#section-example">小车受力计算</a><a href="#section-quiz">自测与答案</a></nav><section id="section-law" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>适用条件与公式</h2><p>在惯性参考系中，恒定质量物体满足 F合=ma。加速度方向与合力方向相同。</p>
+<body><input type="checkbox" id="night" class="night-toggle" aria-label="夜间模式"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">课堂学习</p><h1>牛顿第二定律：合力决定加速度</h1><p class="lead">计算之前，先明确研究对象、参考系和合力。</p></header><nav aria-label="章节导航"><a href="#section-law">适用条件与公式</a><a href="#section-example">小车受力计算</a><a href="#section-quiz">自测与答案</a></nav><section id="section-law" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>适用条件与公式</h2><p>在惯性参考系中，恒定质量物体满足 F合=ma。加速度方向与合力方向相同。</p>
 <table><thead><tr><th scope="col">量</th><th scope="col">符号</th><th scope="col">单位</th></tr></thead><tbody><tr><td>合力</td><td>F合</td><td>N</td></tr><tr><td>质量</td><td>m</td><td>kg</td></tr><tr><td>加速度</td><td>a</td><td>m/s²</td></tr></tbody></table><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-example">下一节：小车受力计算 →</a></p></section>
 <section id="section-example" data-no="02"><p class="eyebrow">来源材料</p><h2><span class="sec-no">02</span>小车受力计算</h2><ul><li>选取向右为正方向。</li><li>F合=10−2=8 N。</li><li>a=F合/m=8/2=4 m/s²，方向向右。</li></ul>
 <aside class="callout"><strong>提示</strong><p>不能把拉力直接当作合力。速度方向也不一定与加速度方向相同。</p></aside><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-quiz">下一节：自测与答案 →</a></p></section>

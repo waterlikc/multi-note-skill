@@ -57,7 +57,8 @@ nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24
 .night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
 .night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
 .night-toggle-label:before{content:"◐ 夜间"}
-.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+.night-toggle:focus-visible+.night-toggle-label{outline:2px solid var(--accent)}
+html:has(#night:checked) .night-toggle-label:before{content:"◑ 白天"}
 body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
 @media print{.night-toggle,.night-toggle-label{display:none}}
 
@@ -68,6 +69,7 @@ body{padding-top:48px}
 .topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
 .topbar .night-toggle-label:before{color:inherit}
 @media print{.topbar{display:none}body{padding-top:0}}
+@media screen{
 html:has(#night:checked) body{background:#161310;color:#e8dfcc;background-image:none}
 html:has(#night:checked) main{background:#221d17;border-color:#3f3628;box-shadow:none}
 html:has(#night:checked) header{border-color:#3f3628}
@@ -84,8 +86,15 @@ html:has(#night:checked) .sources blockquote{color:#e8dfcc}
 html:has(#night:checked) .night-toggle-label{background:#2a2319;color:#e8dfcc;border-color:#3f3628}
 html:has(#night:checked) .topbar{background:#070d12}
 html:has(#night:checked) h1{background:linear-gradient(transparent 68%,rgba(217,180,94,.3) 68% 94%,transparent 94%)}
+html:has(#night:checked){color-scheme:dark}
+html:has(#night:checked) .footer{color:#b3a48b}
+html:has(#night:checked) .practice tr.wrong td{background:#33241c}
+html:has(#night:checked) svg rect[fill="#fff"]{fill:#2a2319;stroke:#3f3628}
+html:has(#night:checked) svg text{fill:#e8dfcc}
+html:has(#night:checked) svg path{stroke:#4a3e2c}
+}
 </style></head>
-<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">技术学习</p><h1>Python 列表：复制与共享</h1><p class="lead">赋值不会复制列表；先理解对象共享，再选择复制方式。</p></header><nav aria-label="章节导航"><a href="#section-concept">赋值和浅拷贝的区别</a><a href="#section-code">观察共享行为</a><a href="#section-quiz">自测：嵌套列表</a></nav><section id="section-concept" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>赋值和浅拷贝的区别</h2><table><thead><tr><th scope="col">写法</th><th scope="col">外层列表</th><th scope="col">嵌套对象</th></tr></thead><tbody><tr><td>b=a</td><td>共享</td><td>共享</td></tr><tr><td>b=a.copy()</td><td>新列表</td><td>仍可能共享</td></tr></tbody></table><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-code">下一节：观察共享行为 →</a></p></section>
+<body><input type="checkbox" id="night" class="night-toggle" aria-label="夜间模式"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">技术学习</p><h1>Python 列表：复制与共享</h1><p class="lead">赋值不会复制列表；先理解对象共享，再选择复制方式。</p></header><nav aria-label="章节导航"><a href="#section-concept">赋值和浅拷贝的区别</a><a href="#section-code">观察共享行为</a><a href="#section-quiz">自测：嵌套列表</a></nav><section id="section-concept" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>赋值和浅拷贝的区别</h2><table><thead><tr><th scope="col">写法</th><th scope="col">外层列表</th><th scope="col">嵌套对象</th></tr></thead><tbody><tr><td>b=a</td><td>共享</td><td>共享</td></tr><tr><td>b=a.copy()</td><td>新列表</td><td>仍可能共享</td></tr></tbody></table><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-code">下一节：观察共享行为 →</a></p></section>
 <section id="section-code" data-no="02"><p class="eyebrow">补充解释</p><h2><span class="sec-no">02</span>观察共享行为</h2><figure class="code"><figcaption>Python 3 · 补充示例</figcaption><pre><code>a = [1, 2]
 b = a
 b.append(3)

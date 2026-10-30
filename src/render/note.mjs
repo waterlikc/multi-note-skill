@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { validateNote, scenes, canonical } from '../contract.mjs';
 import { validateState } from '../state.mjs';
+import { renderAnimation } from '../animation/svg.mjs';
+export { renderAnimation } from '../animation/svg.mjs';
+export { validateAnimation, normalizeAnimation } from '../animation/schema.mjs';
 export { createState, mergeState, validateState } from '../state.mjs';
 export { resolveInput } from '../input.mjs';
 export { validateNote } from '../contract.mjs';
@@ -73,24 +76,71 @@ function renderPractice(note) {
   const simText = summary.simulated ? '；演示作答 ' + summary.simulated + ' 题，不计入掌握' : '';
   const hasObjectives = (note.objectives ?? []).length > 0;
   const labels = objectiveLabels(note);
-  const rows = note.practice.map(item =>
+  const targetOf = item => item.objectiveId ? (labels.get(item.objectiveId) ?? item.objectiveId) : '—';
+  const tagOf = item => item.simulated ? '演示，不计入' : '真实作答';
+  // 先问后答：题目在 summary，答案收进 details；不在同一屏提前暴露。
+  const items = note.practice.map((item, index) => {
+    const extra = item.note ? '<p class="practice-note">我的备注：' + e(item.note) + '</p>' : '';
+    return '<li class="practice-item ' + (item.simulated ? 'simulated' : item.verdict) + '">' +
+      '<details><summary><span class="pi-no">' + String(index + 1).padStart(2, '0') + '</span>' +
+      '<span class="pi-q">' + e(item.question) + '</span>' +
+      '<span class="pi-meta">' + tagOf(item) + ' · ' + verdicts[item.verdict] + '</span></summary>' +
+      '<div class="pi-body"><p><strong>参考答案</strong> ' + e(item.answer) + '</p>' + extra +
+      '<p class="source">' + (hasObjectives ? '目标：' + e(targetOf(item)) + ' · ' : '') + '记录：' + e(item.id) + '</p></div></details></li>';
+  }).join('');
+  const rows = note.practice.map((item, index) =>
     '<tr class="' + (item.simulated ? 'simulated' : item.verdict) + '">' +
-    '<td>' + item.id + '</td><td>' + e(item.question) + '</td><td>' + e(item.answer) + '</td>' +
+    '<td>' + String(index + 1).padStart(2, '0') + '</td><td>' + e(item.question) + '</td><td>' + e(item.answer) + '</td>' +
     '<td>' + verdicts[item.verdict] + '</td>' +
-    (hasObjectives ? '<td' + (item.objectiveId ? ' title="' + e(item.objectiveId) + '"' : '') + '>' +
-      (item.objectiveId ? (labels.get(item.objectiveId) ?? '—') : '—') + '</td>' : '') +
-    '<td>' + (item.simulated ? '演示，不计入' : '真实作答') + '</td></tr>').join('');
-  return '<section class="practice" id="practice"><h2>自测与错题</h2>' +
+    (hasObjectives ? '<td>' + e(targetOf(item)) + '</td>' : '') +
+    '<td>' + tagOf(item) + '</td></tr>').join('');
+  const style = '<style>' +
+    '.practice-hint{font-size:12.5px;color:var(--muted,#6f665c)}' +
+    '.practice-list{list-style:none;padding:0;margin:14px 0}' +
+    '.practice-item{border-top:1px solid var(--rule,#e3dccf);padding:10px 0}' +
+    '.practice-item summary{display:flex;gap:10px;align-items:baseline;cursor:pointer;list-style:none}' +
+    '.practice-item summary::-webkit-details-marker{display:none}' +
+    '.practice-item summary:before{content:"▸";color:var(--accent,var(--coral,#1a7f8e));font-size:12px;flex:none}' +
+    '.practice-item[open] summary:before{content:"▾"}' +
+    '.pi-no{font:600 11px/1.6 Consolas,monospace;color:var(--accent,var(--coral,#1a7f8e));flex:none}' +
+    '.pi-q{flex:1;font-weight:600}' +
+    '.pi-meta{font-size:12px;color:var(--muted,#6f665c);white-space:nowrap;flex:none}' +
+    '.pi-body{margin:10px 0 0 26px;padding:10px 12px;background:rgba(127,127,127,.06);border-left:2px solid var(--accent,var(--coral,#1a7f8e))}' +
+    '.practice-note{font-size:13px;color:var(--muted,#6f665c)}' +
+    '.practice-key{display:none}' +
+    '@media print{.practice-list,.practice-hint{display:none}.practice-key{display:block;break-before:page}.practice-key table{font-size:10pt}}' +
+    '</style>';
+  return '<section class="practice" id="practice">' + style + '<h2>自测与错题</h2>' +
     '<p class="source">' + realText + simText + '。</p>' +
-    '<table><thead><tr><th scope="col">题号</th><th scope="col">题目</th><th scope="col">我的作答</th><th scope="col">判定</th>' +
-    (hasObjectives ? '<th scope="col">目标</th>' : '') + '<th scope="col">来源</th></tr></thead><tbody>' +
-    rows + '</tbody></table></section>';
+    '<p class="practice-hint">先自己作答，再展开「核对答案」；答案默认不显示，打印时另附答案页。</p>' +
+    '<ol class="practice-list">' + items + '</ol></section>' +
+    '<div class="practice-key" aria-label="自测答案页"><h2>自测答案页（打印用）</h2>' +
+    '<p class="source">答案单独成页，便于先做后对；屏幕上请用上方折叠答案。</p>' +
+    '<table><thead><tr><th scope="col">题号</th><th scope="col">题目</th><th scope="col">参考答案</th><th scope="col">判定</th>' +
+    (hasObjectives ? '<th scope="col">目标</th>' : '') + '<th scope="col">性质</th></tr></thead><tbody>' +
+    rows + '</tbody></table></div>';
+}
+
+// 学习路径：按使用者习惯，从第一节开始，编号可点击；长笔记优先用它。
+function renderOutlineList(note) {
+  const e = escapeHtml;
+  const items = note.sections.map((section, index) => {
+    const num = String(index + 1).padStart(2, '0');
+    return '<li style="break-inside:avoid;margin:0 0 15px">' +
+      '<a href="#section-' + section.id + '" style="display:flex;gap:10px;align-items:baseline;color:inherit;text-decoration:none">' +
+      '<span style="font:600 11px/1.6 Consolas,monospace;color:#1A7F8E">' + num + '</span>' +
+      '<span style="font-size:14px;line-height:1.55">' + e(section.heading) + '</span></a></li>';
+  }).join('');
+  return '<section class="mindmap" id="outline"><h2>学习路径</h2>' +
+    '<ol style="column-count:2;column-gap:38px;list-style:none;padding:0;margin:12px 0 4px">' + items + '</ol>' +
+    '<p class="source">先读 01，再按编号往下：概念 → 动手 → 排错与迁移；点击标题跳到对应章节。</p></section>';
 }
 
 // 知识结构图：分层卡片 + 折线箭头 + 图例；纯内联 SVG，无脚本、无外链。
 function renderMindmap(state) {
   const nodes = state.graph.nodes;
   if (nodes.length < 2) return '';
+  if (nodes.length >= 4) return renderOutlineList(state.note);
   const e = escapeHtml;
   const depth = new Map(nodes.map(node => [node.id, 0]));
   // 相关边也参与分层：让“相关”节点落在来源右侧，而不是被当成起点。
@@ -212,20 +262,63 @@ function renderGraph(state) {
       state.graph.edges.map(edge => '<tr><td>' + e(labels.get(edge.from)) + ' → ' + relations[edge.type] + ' → ' +
         e(labels.get(edge.to)) + '</td><td>' + e(edge.basis) + '</td></tr>').join('') + '</tbody></table>'
     : '<p>目前没有足够依据建立知识关系。</p>';
-  return '<section><h2>知识关联与复习记录</h2><ul>' + list + '</ul>' + table +
+  return '<section><h2>知识结构图与复习记录</h2><p class="source">节点 ' + state.graph.nodes.length + ' 个，关系 ' + state.graph.edges.length + ' 条；下表给出关系类型与依据。</p><ul>' + list + '</ul>' + table +
     '<p class="source">关系可辅助安排复习，不能代替实际答题评估。</p></section>';
 }
 
-function renderBlock(block) {
+function renderBlock(block, animationCss, context = {}) {
   const e = escapeHtml;
   switch (block.type) {
+    case 'animation': {
+      const rendered = renderAnimation(block, { style: context.style });
+      if (animationCss) animationCss.push(rendered.css);
+      return rendered.html;
+    }
     case 'paragraph': return '<p>' + e(block.text) + '</p>';
+    case 'image': return '<figure class="figure-image" style="margin:18px 0"><img src="' + e(block.src) + '" alt="' + e(block.alt) +
+      '" style="max-width:100%;height:auto;border:1px solid #C9D8E0;border-radius:4px">' +
+      (block.caption ? '<figcaption style="font:12px/1.7 Consolas,monospace;color:#5B7283;margin-top:6px">' + e(block.caption) + '</figcaption>' : '') + '</figure>';
     case 'callout': return '<aside class="callout"><strong>提示</strong><p>' + e(block.text) + '</p></aside>';
     case 'code': return '<figure class="code"><figcaption>' + e(block.language || '代码') + '</figcaption><pre><code>' + e(block.text) + '</code></pre></figure>';
     case 'list': return '<ul>' + block.items.map(item => '<li>' + e(item) + '</li>').join('') + '</ul>';
     case 'table': return '<table><thead><tr>' + block.headers.map(h => '<th scope="col">' + e(h) + '</th>').join('') + '</tr></thead><tbody>' +
       block.rows.map(row => '<tr>' + row.map(cell => '<td>' + e(cell) + '</td>').join('') + '</tr>').join('') + '</tbody></table>';
   }
+}
+
+// 来源链接带时间戳：B 站用 ?t=秒，YouTube 用 &t=秒s。
+function sourceDeepLink(url, label) {
+  if (!url) return url;
+  const m = label.match(/(\d{1,2}):(\d{2})/);
+  if (!m) return url;
+  const seconds = Number(m[1]) * 60 + Number(m[2]);
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '');
+    if (host.endsWith('bilibili.com')) u.searchParams.set('t', String(seconds));
+    else if (host === 'youtu.be' || host.endsWith('youtube.com')) u.searchParams.set('t', seconds + 's');
+    else return url;
+    return u.toString();
+  } catch { return url; }
+}
+
+function firstKeywordSection(note, word) {
+  const hit = note.sections.find(section => {
+    const parts = [section.heading];
+    for (const block of section.blocks ?? []) {
+      if (block.text) parts.push(block.text);
+      if (block.items) parts.push(block.items.join(' '));
+      if (block.headers) parts.push(block.headers.join(' '), ...(block.rows ?? []).map(row => row.join(' ')));
+      if (block.caption) parts.push(block.caption);
+      if (block.alt) parts.push(block.alt);
+      if (block.title) parts.push(block.title);
+      for (const step of block.steps ?? []) parts.push(step.label ?? '', step.detail ?? '');
+      for (const node of block.nodes ?? []) parts.push(node.label ?? '', node.detail ?? '');
+      for (const edge of block.edges ?? []) parts.push(edge.label ?? '');
+    }
+    return parts.join(' ').includes(word);
+  });
+  return hit ? 'section-' + hit.id : 'top';
 }
 
 export async function generateNote(note, state) {
@@ -235,6 +328,7 @@ export async function generateNote(note, state) {
     if (canonical(state.note) !== canonical(note)) throw new Error('状态和渲染的笔记不一致');
   }
   const template = await readFile(new URL('../../assets/template-' + note.style.at(-1) + '.html', import.meta.url), 'utf8');
+  const animationCss = [];
   const e = escapeHtml;
   // 长笔记的导航收成编号块，避免十几条标题挤成三行。
   const nav = (note.sections.length >= 8
@@ -245,7 +339,7 @@ export async function generateNote(note, state) {
   const sections = note.sections.map((s, index) =>
     '<section id="section-' + s.id + '" data-no="' + String(index + 1).padStart(2, '0') + '"><p class="eyebrow">' + origins[s.origin] + '</p>' +
     '<h2><span class="sec-no">' + String(index + 1).padStart(2, '0') + '</span>' + e(s.heading) + '</h2>' +
-    s.blocks.map(renderBlock).join('\n') + '<p class="source">' +
+    s.blocks.map(block => renderBlock(block, animationCss, { style: note.style })).join('\n') + '<p class="source">' +
     (s.sourceIds.length ? '依据：' + s.sourceIds.map(id => '<a href="#source-' + id + '">[' + id + ']</a>').join(' ') : '补充解释，不是原文摘录') +
     '</p>' + (note.sections[index + 1] ? '<p class="next-link"><a href="#section-' + note.sections[index + 1].id + '">下一节：' +
       e(note.sections[index + 1].heading) + ' →</a></p>' : '') + '</section>').join('\n');
@@ -257,21 +351,24 @@ export async function generateNote(note, state) {
     : '';
   const slots = {
     TITLE: e(note.title), SCENE: e(scenes[note.scene]), REVISION: String(note.revision), SUMMARY: e(note.summary),
+    KEYWORDS: note.keywords?.length ? '<p class="keywords" style="margin:14px 0 0;display:flex;flex-wrap:wrap;gap:6px">' +
+      note.keywords.map(word => '<a href="#' + e(firstKeywordSection(note, word)) + '" title="跳到首次出现" style="font:11px/1.6 Consolas,monospace;color:#1A7F8E;border:1px solid #C9D8E0;border-radius:999px;padding:2px 9px;text-decoration:none">' + e(word) + '</a>').join('') + '</p>' : '',
     NAV: nav,
     PAGER: pager,
     CONTENT: renderObjectives(note) + sections + renderPractice(note),
     SOURCES: note.sources.map(s => '<li id="source-' + s.id + '"><strong>[' + s.id + '] ' + e(s.label) + '</strong>' +
-      (s.url ? ' <a class="src-link" href="' + e(s.url) + '" rel="noopener">原文</a>' : '') +
+      (s.url ? ' <a class="src-link" href="' + e(sourceDeepLink(s.url, s.label)) + '" rel="noopener">原文</a>' : '') +
       '<blockquote>' + e(s.text) + '</blockquote></li>').join('\n'),
     STATE: state ? (renderMindmap(state) || renderOutlineMap(note)) + renderReviewPlan(state) + renderGraph(state) +
       '<section class="portable-state"><h2>继续学习</h2><p>保存本文件，或复制以下 JSON。下次对话提供旧文件或 JSON 后，可继续更新；此处没有云端存储。</p><p>版本 ' +
       note.revision + ' · ' + e(state.history.at(-1).summary) + '</p><pre id="note-state">' + e(JSON.stringify(state, null, 2)) + '</pre></section>' : renderOutlineMap(note)
   };
   // 只在原始模板上替换一次，避免用户文字中的占位符被二次解释。
-  const html = template.replace(/\{\{([A-Z]+)\}\}/g, (_, key) => {
+  let html = template.replace(/\{\{([A-Z]+)\}\}/g, (_, key) => {
     if (!Object.hasOwn(slots, key)) throw new Error('未知模板字段 ' + key);
     return slots[key];
   });
+  if (animationCss.length) html = html.replace('</style>', animationCss.join('\n') + '\n</style>');
   return { html, metadata: { mode: 'programmatic', schemaVersion: 1, revision: note.revision, style: note.style } };
 }
 

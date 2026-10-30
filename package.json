@@ -1,6 +1,6 @@
 {
   "name": "multi-note-skill",
-  "version": "3.1.3",
+  "version": "3.2.0",
   "type": "module",
   "description": "零依赖离线学习笔记渲染与可携带状态",
   "engines": {
@@ -11,9 +11,13 @@
     "note": "./cli/note.mjs"
   },
   "scripts": {
-    "test": "node tests/runtime.test.mjs",
+    "test": "node --test tests/runtime.test.mjs tests/animation.test.mjs",
     "build": "node tools/build.mjs",
-    "audit": "node cli/note.mjs audit"
+    "audit": "node cli/note.mjs audit",
+    "lint": "node cli/note.mjs lint",
+    "check": "node tests/selfcheck.mjs && node --test tests/runtime.test.mjs tests/animation.test.mjs",
+    "subs": "node cli/note.mjs subs",
+    "pack": "node cli/note.mjs pack"
   },
   "license": "MIT",
   "repository": {
@@ -21,6 +25,8 @@
     "url": "git+https://github.com/waterlikc/multi-note-skill.git"
   },
   "keywords": [
+    "animation",
+    "concept",
     "note",
     "markdown",
     "offline",

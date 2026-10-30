@@ -1,3 +1,4 @@
+// 渲染入口：node scripts/render.mjs note.json out.html；依赖 ../cli 与 ../src。
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { runRender } from '../cli/note.mjs';

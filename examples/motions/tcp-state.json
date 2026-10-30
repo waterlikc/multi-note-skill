@@ -1,0 +1,106 @@
+{
+  "type": "animation",
+  "id": "tcp-state",
+  "preset": "state",
+  "title": "TCP 状态迁移：从建立到关闭",
+  "alt": "TCP 从 CLOSED 到 ESTABLISHED 再回到 CLOSED 的状态迁移动画",
+  "caption": "状态机把报文和状态对应起来；这里只画主干路径，异常分支见笔记正文。",
+  "loop": true,
+  "nodes": [
+    {
+      "id": "closed",
+      "label": "CLOSED",
+      "detail": "初始 / 关闭",
+      "tone": "muted"
+    },
+    {
+      "id": "synsent",
+      "label": "SYN-SENT",
+      "detail": "已发 SYN",
+      "tone": "accent"
+    },
+    {
+      "id": "synrcvd",
+      "label": "SYN-RCVD",
+      "detail": "收到 SYN",
+      "tone": "accent"
+    },
+    {
+      "id": "estab",
+      "label": "ESTABLISHED",
+      "detail": "双向可用",
+      "tone": "ok"
+    }
+  ],
+  "edges": [
+    {
+      "id": "open",
+      "from": "closed",
+      "to": "synsent",
+      "label": "SYN"
+    },
+    {
+      "id": "reply",
+      "from": "synsent",
+      "to": "synrcvd",
+      "label": "SYN+ACK"
+    },
+    {
+      "id": "ack",
+      "from": "synrcvd",
+      "to": "estab",
+      "label": "ACK"
+    },
+    {
+      "id": "close",
+      "from": "estab",
+      "to": "closed",
+      "label": "FIN / ACK",
+      "dashed": true
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "label": "客户端发 SYN",
+      "detail": "CLOSED → SYN-SENT",
+      "focus": [
+        "closed",
+        "open"
+      ],
+      "hold": 1.3
+    },
+    {
+      "id": "s2",
+      "label": "服务端回 SYN+ACK",
+      "detail": "进入 SYN-RCVD",
+      "focus": [
+        "synsent",
+        "reply"
+      ],
+      "hold": 1.3
+    },
+    {
+      "id": "s3",
+      "label": "客户端回 ACK",
+      "detail": "双方 ESTABLISHED",
+      "focus": [
+        "synrcvd",
+        "ack",
+        "estab"
+      ],
+      "hold": 1.4
+    },
+    {
+      "id": "s4",
+      "label": "关闭连接",
+      "detail": "FIN / ACK 后回到 CLOSED",
+      "focus": [
+        "estab",
+        "close",
+        "closed"
+      ],
+      "hold": 1.5
+    }
+  ]
+}

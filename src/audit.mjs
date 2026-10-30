@@ -16,9 +16,8 @@ export function auditHtml(html) {
     [/<script\b/i, '包含 script'],
     [/<iframe\b/i, '包含 iframe'],
     [/<link\b/i, '包含 link'],
-    [/<img\b/i, '包含 img'],
     [/@import/i, '包含 @import'],
-    [/url\(/i, '包含 url()'],
+    [/url\((?!\s*['\"]?#)/i, '包含 url()'],
     [/src="https?:/i, '外链 src'],
     [/href="https?:/i, '外链 href'],
     [/\bundefined\b/, '出现 undefined'],
@@ -26,6 +25,9 @@ export function auditHtml(html) {
     [/\[object Object\]/, '出现 [object Object]']
   ];
   for (const [pattern, message] of bad) if (pattern.test(body)) issues.push(message);
+  for (const image of html.matchAll(/<img\b[^>]*src="([^"]*)"/g)) {
+    if (!/^data:image\/(png|jpeg|webp|gif);base64,/.test(image[1])) issues.push('图片来源必须内联');
+  }
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
   const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
   if (duplicates.length) issues.push('重复 id：' + duplicates.join('、'));

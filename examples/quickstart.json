@@ -1,0 +1,484 @@
+{
+  "schemaVersion": 1,
+  "id": "css-core",
+  "revision": 1,
+  "title": "CSS 核心：从选择器到布局",
+  "scene": "tech",
+  "style": "style-b",
+  "summary": "把 CSS 拆成五条主线：选择器与层叠、盒模型、文档流、Flex/Grid、层叠上下文；每条都能用一个小例子验证。",
+  "keywords": [
+    "CSS",
+    "选择器",
+    "盒模型",
+    "Flex",
+    "Grid"
+  ],
+  "sources": [
+    {
+      "id": "S1",
+      "label": "自写讲义提纲（2026-10-25）",
+      "text": "CSS 用选择器匹配元素，按层叠规则计算声明优先级；盒模型、布局与层叠上下文决定最终渲染。"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "o1",
+      "text": "能写出选择器并判断优先级",
+      "criteria": [
+        "能区分 class/id/属性选择器",
+        "能按（id, class, 类型）比较"
+      ],
+      "sectionIds": [
+        "selectors",
+        "cascade"
+      ]
+    },
+    {
+      "id": "o2",
+      "text": "能解释 box-sizing 对宽度的影响",
+      "criteria": [
+        "能算 content-box 实际占宽",
+        "能说出 border-box 的收益"
+      ],
+      "sectionIds": [
+        "box"
+      ]
+    },
+    {
+      "id": "o3",
+      "text": "能用 Flex 和 Grid 完成布局",
+      "criteria": [
+        "一维用 Flex",
+        "二维用 Grid",
+        "能说出 gap 的作用"
+      ],
+      "sectionIds": [
+        "flex",
+        "grid"
+      ]
+    },
+    {
+      "id": "o4",
+      "text": "能定位 z-index 失效原因",
+      "criteria": [
+        "知道层叠上下文",
+        "知道 transform/opacity 会创建新上下文"
+      ],
+      "sectionIds": [
+        "stacking",
+        "pitfalls"
+      ]
+    }
+  ],
+  "practice": [
+    {
+      "id": "p1",
+      "objectiveId": "o1",
+      "verdict": "right",
+      "simulated": true,
+      "question": "#nav .item 和 .item.active 哪个优先级高？",
+      "answer": "前者 (1,1,0)，后者 (0,2,0)，前者高；但不要只背数字，先看是否同一元素。"
+    },
+    {
+      "id": "p2",
+      "objectiveId": "o2",
+      "verdict": "wrong",
+      "simulated": true,
+      "question": "width:100px; padding:10px; border:1px，content-box 下总宽是多少？",
+      "answer": "122px；border-box 下才是 100px。"
+    },
+    {
+      "id": "p3",
+      "objectiveId": "o3",
+      "verdict": "right",
+      "simulated": true,
+      "question": "导航栏一行排列，用 Flex 还是 Grid？",
+      "answer": "一维用 Flex；二维卡片墙再用 Grid。"
+    },
+    {
+      "id": "p4",
+      "objectiveId": "o4",
+      "verdict": "wrong",
+      "simulated": true,
+      "question": "z-index:9999 还是不生效，为什么？",
+      "answer": "可能父级创建了新的层叠上下文，或元素不是定位/flex/grid item。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "what",
+      "heading": "CSS 在做什么",
+      "origin": "source",
+      "sourceIds": [
+        "S1"
+      ],
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "CSS 不改变 DOM 结构，只决定“长什么样、排在哪里”。它由选择器、声明、层叠三件事组成。"
+        },
+        {
+          "type": "callout",
+          "text": "先判断“谁匹配、谁覆盖”，再写属性；顺序反了就会陷入加 !important 的循环。"
+        }
+      ]
+    },
+    {
+      "id": "selectors",
+      "heading": "选择器：先匹配，再谈样式",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "写法",
+            "匹配",
+            "常见用途"
+          ],
+          "rows": [
+            [
+              "p",
+              "类型",
+              "全局基础样式"
+            ],
+            [
+              ".card",
+              "class",
+              "组件"
+            ],
+            [
+              "#app",
+              "id",
+              "页面唯一锚点，少用于样式"
+            ],
+            [
+              "[disabled]",
+              "属性",
+              "表单状态"
+            ],
+            [
+              ":hover",
+              "伪类",
+              "交互态"
+            ]
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "优先级按（id, class/属性/伪类, 类型/伪元素）三元组比较，不是“谁写得长谁赢”。"
+        }
+      ]
+    },
+    {
+      "id": "cascade",
+      "heading": "层叠与继承：覆盖顺序",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "来源与重要性：用户代理 < 作者 < 作者 !important（简化理解）。",
+            "特异性：三元组逐位比较。",
+            "顺序：同等特异性，后写覆盖先写。",
+            "继承：文字类属性会继承，布局类通常不会。"
+          ]
+        },
+        {
+          "type": "table",
+          "headers": [
+            "值",
+            "含义",
+            "典型场景"
+          ],
+          "rows": [
+            [
+              "inherit",
+              "强制继承父值",
+              "表单字体"
+            ],
+            [
+              "initial",
+              "属性初始值",
+              "重置"
+            ],
+            [
+              "unset",
+              "可继承则继承，否则初始",
+              "通用重置"
+            ],
+            [
+              "revert",
+              "回退到上一层来源",
+              "覆盖第三方库"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "box",
+      "heading": "盒模型：宽度到底算谁",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "content-box 的 width 只算内容；padding 和 border 另加。border-box 把 padding/border 算进 width，布局更可控。"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "设置",
+            "content-box 实际占宽",
+            "border-box 实际占宽"
+          ],
+          "rows": [
+            [
+              "width:100px; padding:10px; border:1px",
+              "122px",
+              "100px"
+            ],
+            [
+              "width:50%; padding:16px",
+              "50% + 32px",
+              "50%（内容被压缩）"
+            ]
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "全局 box-sizing:border-box 不是万能：它改变的是“宽度含义”，不改变 margin 和溢出。"
+        }
+      ]
+    },
+    {
+      "id": "flow",
+      "heading": "文档流与定位",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "static：默认，按文档流排。",
+            "relative：保留原位置，偏移不脱流。",
+            "absolute：相对最近定位祖先，脱流。",
+            "fixed：相对视口，脱流。",
+            "sticky：滚动到阈值后粘住，仍在流内。"
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "绝对定位最常见的坑：父级没设 position，结果相对 body 定位。"
+        }
+      ]
+    },
+    {
+      "id": "flex",
+      "heading": "Flex：一维排列",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "display:flex 后，主轴由 flex-direction 决定；justify-content 管主轴，align-items 管交叉轴。"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "属性",
+            "作用",
+            "注意"
+          ],
+          "rows": [
+            [
+              "flex: 1 1 0",
+              "可伸可缩，基准 0",
+              "常用来等分"
+            ],
+            [
+              "min-width:auto",
+              "默认最小内容宽",
+              "长单词会撑破布局"
+            ],
+            [
+              "gap",
+              "子项间距",
+              "比 margin 更干净"
+            ]
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "flex:1 不保证等宽，如果子项 min-width:auto 且内容很长；要加 min-width:0。"
+        }
+      ]
+    },
+    {
+      "id": "grid",
+      "heading": "Grid：二维布局",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "grid-template-columns 定义列，fr 分配剩余空间；repeat(auto-fit, minmax(220px,1fr)) 可以自动换列。"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "写法",
+            "效果",
+            "场景"
+          ],
+          "rows": [
+            [
+              "1fr 1fr",
+              "两等列",
+              "固定两栏"
+            ],
+            [
+              "repeat(3, 1fr)",
+              "三等列",
+              "卡片墙"
+            ],
+            [
+              "auto-fit + minmax",
+              "按容器宽度换列",
+              "响应式卡片"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "responsive",
+      "heading": "响应式：从容器出发",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "先写移动端，再用 min-width 媒体查询增强。",
+            "用 clamp() 控制字号，不要到处写死 px。",
+            "容器查询适合组件级响应式，媒体查询适合页面级。"
+          ]
+        },
+        {
+          "type": "callout",
+          "text": "断点不是越多越好；按内容“什么时候挤”来定，不按设备型号定。"
+        }
+      ]
+    },
+    {
+      "id": "stacking",
+      "heading": "层叠上下文：z-index 为什么失效",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "z-index 只在同一层叠上下文内比较；父级创建了新上下文，子级再大也跳不出去。"
+        },
+        {
+          "type": "list",
+          "items": [
+            "常见触发：position + z-index、transform、opacity<1、filter、isolation:isolate。",
+            "排查：从元素往上找最近的层叠上下文，再看兄弟层级。"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pitfalls",
+      "heading": "五个高频坑",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "现象",
+            "原因",
+            "修法"
+          ],
+          "rows": [
+            [
+              "margin 上下不叠加",
+              "外边距合并",
+              "用 padding 或 BFC"
+            ],
+            [
+              "height:100% 无效",
+              "父级没有确定高度",
+              "给父级高度或 min-height"
+            ],
+            [
+              "绝对定位跑到 body",
+              "父级没定位",
+              "父级 position:relative"
+            ],
+            [
+              "z-index 不生效",
+              "层叠上下文/非定位",
+              "检查上下文与 position"
+            ],
+            [
+              "移动端 1px 边框粗",
+              "DPR 缩放",
+              "用 transform 或细线方案"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "transfer",
+      "heading": "迁移任务：用 CSS 复现三个小界面",
+      "origin": "supplement",
+      "sourceIds": [],
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "做一个三列卡片墙，窄屏变一列：Flex 或 Grid 各写一版。",
+            "做一个吸顶导航：sticky 和 fixed 的差异写下来。",
+            "找一个 z-index 失效的页面，画出层叠上下文。"
+          ]
+        },
+        {
+          "type": "table",
+          "headers": [
+            "自评",
+            "初级",
+            "中级",
+            "高级"
+          ],
+          "rows": [
+            [
+              "选择器",
+              "能选中",
+              "能算优先级",
+              "能重构降低特异性"
+            ],
+            [
+              "布局",
+              "能排一行",
+              "能响应式",
+              "能解释为什么选 Flex/Grid"
+            ],
+            [
+              "层叠",
+              "知道 z-index",
+              "知道上下文",
+              "能画出层级树"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

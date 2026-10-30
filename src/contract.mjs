@@ -1,3 +1,5 @@
+import { validateAnimation } from './animation/schema.mjs';
+
 export const scenes = { tech:'技术学习', course:'课堂学习', science:'科普知识', reading:'读书笔记', meeting:'会议纪要', research:'调研分析', project:'项目报告' };
 export const styles = ['style-a', 'style-b', 'style-c'];
 export function requireValue(condition, message) { if (!condition) throw new Error(message); }
@@ -18,10 +20,17 @@ export function validateNote(note) {
   requireValue(Number.isSafeInteger(note.revision) && note.revision > 0, 'revision 必须为正整数');
   requireValue(nonempty(note.title) && typeof note.summary === 'string', '缺少标题或摘要');
   requireValue(Object.hasOwn(scenes, note.scene) && styles.includes(note.style), '未知场景或主题');
+  if (note.compact !== undefined) requireValue(typeof note.compact === 'boolean', 'compact 必须为布尔值');
+  if (note.keywords !== undefined) {
+    requireValue(Array.isArray(note.keywords) && note.keywords.length > 0 && note.keywords.length <= 8, '关键词需为 1-8 个');
+    for (const word of note.keywords) requireValue(nonempty(word), '关键词不能为空');
+    requireValue(new Set(note.keywords.map(word => word.trim())).size === note.keywords.length, '关键词重复');
+  }
   const sourceIds = uniqueIds(note.sources, '来源');
   requireValue(note.sources.length > 0, '至少需要一个真实来源');
   for (const source of note.sources) requireValue(nonempty(source.label) && nonempty(source.text), '来源必须有说明和原文');
   const sectionIds = uniqueIds(note.sections, '章节');
+  const animationIds = new Set();
   requireValue(note.sections.length > 0, '至少需要一个章节');
   for (const section of note.sections) {
     requireValue(nonempty(section.heading), '章节缺少标题');
@@ -39,6 +48,15 @@ export function validateNote(note) {
       } else if (block.type === 'table') {
         requireValue(Array.isArray(block.headers) && block.headers.length > 0 && block.headers.every(nonempty), '表头无效');
         requireValue(Array.isArray(block.rows) && block.rows.every(row => Array.isArray(row) && row.length === block.headers.length && row.every(v => typeof v === 'string')), '表格行列数不一致');
+      } else if (block.type === 'animation') {
+        validateAnimation(block);
+        requireValue(!animationIds.has(block.id), '动画块 id 重复：' + block.id);
+        animationIds.add(block.id);
+      } else if (block.type === 'image') {
+        requireValue(nonempty(block.alt), '图片缺少替代文本');
+        requireValue(typeof block.src === 'string' && /^data:image\/(png|jpeg|webp|gif);base64,/.test(block.src), '图片必须内联为 data URI');
+        if (block.caption !== undefined) requireValue(typeof block.caption === 'string', '图片说明必须为文字');
+        if (block.sourceId !== undefined) requireValue(sourceIds.has(block.sourceId), '图片引用了不存在的来源');
       } else throw new Error(`不支持的内容块：${block.type}`);
     }
   }

@@ -59,7 +59,8 @@ nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24
 .night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
 .night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
 .night-toggle-label:before{content:"◐ 夜间"}
-.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+.night-toggle:focus-visible+.night-toggle-label{outline:2px solid var(--accent)}
+html:has(#night:checked) .night-toggle-label:before{content:"◑ 白天"}
 body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
 @media print{.night-toggle,.night-toggle-label{display:none}}
 
@@ -70,6 +71,7 @@ body{padding-top:48px}
 .topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
 .topbar .night-toggle-label:before{color:inherit}
 @media print{.topbar{display:none}body{padding-top:0}}
+@media screen{
 html:has(#night:checked) body{background:#12100e;color:#d6cec2;background-image:none}
 html:has(#night:checked) main{background:#1a1714;border-color:#3a332c;box-shadow:none}
 html:has(#night:checked) header{border-color:#3a332c}
@@ -86,8 +88,15 @@ html:has(#night:checked) .sources blockquote{color:#d6cec2}
 html:has(#night:checked) .night-toggle-label{background:#1d1915;color:#d6cec2;border-color:#3a332c}
 html:has(#night:checked) .topbar{background:#070d12}
 html:has(#night:checked) .pager a{background:#1d1915;color:#d6cec2;border-color:#3a332c}
+html:has(#night:checked){color-scheme:dark}
+html:has(#night:checked) .footer{color:#a89d8f}
+html:has(#night:checked) .practice tr.wrong td{background:#2a1c18}
+html:has(#night:checked) svg rect[fill="#fff"]{fill:#1d1915;stroke:#3a332c}
+html:has(#night:checked) svg text{fill:#d6cec2}
+html:has(#night:checked) svg path{stroke:#4a4239}
+}
 </style></head>
-<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">科普知识</p><h1>月相变化：从日月地位置理解</h1><p class="lead">月相取决于从地球看到的月球受光部分。</p></header><nav aria-label="章节导航"><a href="#section-why">现象与原理</a><a href="#section-boundary">不要混淆月相和月食</a></nav><section id="section-why" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>现象与原理</h2><p>月球反射太阳光。日月地相对位置变化，使观察者看到的受光部分比例变化。</p><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-boundary">下一节：不要混淆月相和月食 →</a></p></section>
+<body><input type="checkbox" id="night" class="night-toggle" aria-label="夜间模式"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">科普知识</p><h1>月相变化：从日月地位置理解</h1><p class="lead">月相取决于从地球看到的月球受光部分。</p></header><nav aria-label="章节导航"><a href="#section-why">现象与原理</a><a href="#section-boundary">不要混淆月相和月食</a></nav><section id="section-why" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>现象与原理</h2><p>月球反射太阳光。日月地相对位置变化，使观察者看到的受光部分比例变化。</p><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-boundary">下一节：不要混淆月相和月食 →</a></p></section>
 <section id="section-boundary" data-no="02"><p class="eyebrow">补充解释</p><h2><span class="sec-no">02</span>不要混淆月相和月食</h2><aside class="callout"><strong>提示</strong><p>普通月相变化不能解释为地球影子遮住月球；月食涉及月球进入地球的影子。</p></aside><p class="source">补充解释，不是原文摘录</p></section><section><h2>原始材料与来源</h2><ol class="sources"><li id="source-S1"><strong>[S1] 教学演示材料（人工编写），第1段</strong><blockquote>月球本身不发光，反射太阳光。月球绕地球运动时，我们看到的被太阳照亮部分发生变化，形成月相。月食与月相不是同一种现象。</blockquote></li></ol></section><section class="portable-state"><h2>继续学习</h2><p>保存本文件，或复制以下 JSON。下次对话提供旧文件或 JSON 后，可继续更新；此处没有云端存储。</p><p>版本 1 · 首次整理</p><pre id="note-state">{
   &quot;schemaVersion&quot;: 1,
   &quot;note&quot;: {

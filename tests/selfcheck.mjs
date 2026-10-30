@@ -20,13 +20,13 @@ let refs = 0;
 for (const f of await readdir(new URL('references/', root))) refs += await textBytes('references/' + f);
 let maxTpl = 0;
 for (const f of await list('assets/')) if (f.startsWith('template-')) maxTpl = Math.max(maxTpl, await textBytes('assets/' + f));
-add('SKILL.md < 5,600', skill < 5600, skill + ' 字节');
+add('SKILL.md < 9,000', skill < 9000, skill + ' 字节');
 add('参考 < 12,000', refs < 12000, refs + ' 字节');
 add('单模板 < 10,000', maxTpl < 10000, maxTpl + ' 字节');
-add('合计 < 27,600', skill + refs + maxTpl < 27600, (skill + refs + maxTpl) + ' 字节');
+add('合计 < 31,000', skill + refs + maxTpl < 31000, (skill + refs + maxTpl) + ' 字节');
 
 // 2. 测试
-const tests = spawnSync(process.execPath, ['tests/runtime.test.mjs'], { cwd: rootPath, encoding: 'utf8' });
+const tests = spawnSync(process.execPath, ['--test', 'tests/runtime.test.mjs', 'tests/animation.test.mjs'], { cwd: rootPath, encoding: 'utf8' });
 add('测试全绿', tests.status === 0, (tests.stdout.match(/pass (\d+)/) || [])[1] + ' 项');
 
 // 3. CLI

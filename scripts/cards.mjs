@@ -1,3 +1,4 @@
+// 卡片入口：node scripts/cards.mjs note.json cards.csv；依赖 ../cli 与 ../src。
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { runCards } from '../cli/note.mjs';

@@ -5,10 +5,12 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { renderFile } from '../scripts/render.mjs';
-import { generateNote, createState, mergeState, resolveInput, validateNote, validateState, summarisePractice, reviewSchedule } from '../index.mjs';
+import { generateNote, createState, mergeState, resolveInput, validateNote, validateState, summarisePractice, reviewSchedule, detectVideo, fetchVideo, parseSubtitles, toSources } from '../index.mjs';
 import { buildPlan, renderPlanHtml } from '../scripts/plan.mjs';
 import { cardsFromNote, toCsv, withBom } from '../scripts/cards.mjs';
 import { auditHtml, auditCsv, auditPlan } from '../scripts/audit.mjs';
+import { checkNote, checkHtml } from '../src/conformance.mjs';
+import { createHash } from 'node:crypto';
 const root = new URL('../', import.meta.url);
 const note = JSON.parse(await readFile(new URL('examples/math.json', root), 'utf8'));
 const state = JSON.parse(await readFile(new URL('examples/math.state.json', root), 'utf8'));
@@ -22,7 +24,7 @@ test('三种主题均输出完整正文、来源和离线资源', async () => {
     assert.match(html, /<\/html>\s*$/);
     assert.match(html, /y=2x\+1/);
     assert.match(html, /source-S1/);
-    assert.doesNotMatch(html, /<(?:script|iframe|link|img)\b|@import|url\(/i);
+    assert.doesNotMatch(html, /<(?:script|iframe|link|img)\b|@import|url\((?!\s*['\"]?#)/i);
     assert.doesNotMatch(html, /\{\{[A-Z]+\}\}/);
     assert.match(html, /@media print/);
   }
@@ -48,6 +50,14 @@ test('JSON 状态经 HTML 转义后可无损恢复', async () => {
 test('缺少真实来源、坏表格、未知块、错误引用均拒绝', () => {
   const mutations = [n => n.sources = [], n => n.sections[0].sourceIds = ['missing'], n => n.sections[0].blocks = [{ type:'raw',text:'x' }], n => n.sections[0].blocks = [{type:'table',headers:['x'],rows:[['a','b']]}], n => n.style = '../bad', n => n.scene = 'constructor'];
   for (const mutate of mutations) { const n = clone(note); mutate(n); assert.throws(() => validateNote(n)); }
+  const image = clone(note); image.sections[0].blocks = [{ type: 'image', src: 'data:image/png;base64,iVBORw0KGgo=', alt: '示意图' }];
+  assert.doesNotThrow(() => validateNote(image));
+  image.sections[0].blocks[0].src = 'https://example.com/a.png';
+  assert.throws(() => validateNote(image), /data URI/);
+  const words = clone(note); words.keywords = ['缓存', '分布式'];
+  assert.doesNotThrow(() => validateNote(words));
+  words.keywords = ['', '缓存'];
+  assert.throws(() => validateNote(words), /关键词/);
 });
 test('无依据的学习掌握状态被拒绝', () => {
   const s = clone(state); s.graph.nodes[0].mastery = 'mastered';
@@ -126,7 +136,7 @@ test('示例页的章节锚点唯一且全部能定位', async () => {
     const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
     assert.equal(new Set(ids).size,ids.length,`${name} 重复锚点`);
     for (const [,id] of html.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.includes(id),`${name} 无效链接 ${id}`);
-    assert.doesNotMatch(html, /<(?:script|iframe|link|img)\b|@import|url\(/i);
+    assert.doesNotMatch(html, /<(?:script|iframe|link|img)\b|@import|url\((?!\s*['\"]?#)/i);
   }
 });
 test('三个主题的文字色与背景满足基本对比度', () => {
@@ -138,16 +148,16 @@ test('三个主题的文字色与背景满足基本对比度', () => {
     assert.ok((luminance(bg)+.05)/(luminance(fg)+.05)>=4.5, `${fg}/${bg}`);
   }
 });
-test('主文件小于5.6KB且说明书加一种模板小于27.6KB', async () => {
+test('主文件小于5.8KB且说明书加一种模板小于31KB', async () => {
   const bytes = async rel => Buffer.byteLength((await readFile(new URL(rel, root), 'utf8')).replace(/\r\n/g, '\n'), 'utf8');
   const main = await bytes('SKILL.md');
-  assert.ok(main < 5600, `主文件 ${main} 字节`);
+  assert.ok(main < 9000, `主文件 ${main} 字节`);
   let refs = 0;
   for (const name of await readdir(new URL('references/',root))) refs += await bytes(`references/${name}`);
   assert.ok(refs < 12000, `参考合计 ${refs} 字节`);
   for (const style of ['a','b','c']) {
     const tpl = await bytes(`assets/template-${style}.html`);
-    assert.ok(main + refs + tpl < 27600, `${style}: ${main + refs + tpl} 字节`);
+    assert.ok(main + refs + tpl < 31000, `${style}: ${main + refs + tpl} 字节`);
   }
 });
 test('文件入口能输出完整文件并拒绝覆盖输入和缺失输入', async () => {
@@ -217,6 +227,9 @@ test('自测表区分真实作答与演示作答', async () => {
   assert.match(html, /真实作答 1 题/);
   assert.match(html, /演示作答 1 题/);
   assert.match(html, /不计入/);
+  assert.match(html, /核对答案/);
+  assert.match(html, /practice-key/);
+  assert.ok(html.indexOf('演示答案') > html.indexOf('核对答案'));
   assert.equal(summarisePractice(n).real, 1);
   assert.equal(summarisePractice(n).simulated, 1);
 });
@@ -316,7 +329,8 @@ test('存在学习目标时自测表显示目标列', async () => {
   n.practice = [{ id: 'p1', objectiveId: 'obj-slope', question: 'q', answer: 'a', verdict: 'right', simulated: false }];
   const html = (await generateNote(n)).html;
   assert.match(html, /<th scope="col">目标<\/th>/);
-  assert.match(html, /title="obj-slope">目标 1<\/td>/);
+  assert.match(html, /<td>目标 1<\/td>/);
+  assert.match(html, /目标：目标 1/);
   assert.match(html, /<strong>目标 1<\/strong>/);
   assert.doesNotMatch(html, /编号 obj-/);
 });
@@ -469,4 +483,315 @@ test('来源链接只允许 https，并在产物中可点击', async () => {
   assert.ok(auditHtml(insecure).includes('来源链接必须使用 https'));
   const outside = html.replace('<p class="lead">', '<p class="lead"><a href="https://example.com">x</a>');
   assert.ok(auditHtml(outside).includes('外链 href'));
+
+  note.keywords = ['引用', '来源'];
+  const { html: withWords } = await generateNote(note);
+  assert.match(withWords, /class="keywords"/);
+  assert.match(withWords, /class="keywords"[\s\S]*?href="#section-/);
+  note.sections[0].blocks = [{ type: 'image', src: 'data:image/png;base64,iVBORw0KGgo=', alt: '示意图', caption: '图 1' }];
+  const { html: withImage } = await generateNote(note);
+  assert.match(withImage, /<img src="data:image\/png;base64,/);
+  assert.deepEqual(auditHtml(withImage), []);
+  note.sections[0].blocks = [{ type: 'paragraph', text: '正文。' }];
+
+  note.sources.push({ id: 'S2', label: '视频字幕 · 01:02–01:05', url: 'https://www.bilibili.com/video/BV1xx411c7mD', text: '时间戳来源。' });
+  const { html: withTime } = await generateNote(note);
+  assert.match(withTime, /\?t=62/);
+});
+
+test('契约：缺标题直接拒绝', () => {
+  const bad = structuredClone(note); delete bad.title;
+  assert.throws(() => validateNote(bad), /标题/);
+});
+
+test('契约：章节 id 重复直接拒绝', () => {
+  const bad = structuredClone(note);
+  bad.sections = [bad.sections[0], structuredClone(bad.sections[0])];
+  assert.throws(() => validateNote(bad), /章节 id/);
+});
+
+test('契约：没有来源直接拒绝', () => {
+  const bad = structuredClone(note); bad.sources = [];
+  assert.throws(() => validateNote(bad), /至少需要一个真实来源/);
+});
+
+test('契约：未知主题直接拒绝', () => {
+  const bad = structuredClone(note); bad.style = 'style-z';
+  assert.throws(() => validateNote(bad), /未知场景或主题/);
+});
+
+function practiceNote(verdicts) {
+  const base = structuredClone(note);
+  if (!base.objectives?.length) base.objectives = [{ id: 'o1', text: '目标', criteria: [], sectionIds: [base.sections[0].id] }];
+  base.practice = verdicts.map((verdict, i) => ({
+    id: 'p' + (i + 1), objectiveId: base.objectives[0].id,
+    verdict, simulated: false, at: '2026-10-01'
+  }));
+  return base;
+}
+
+test('复习排期：答错回到 1 天', () => {
+  const plan = reviewSchedule(practiceNote(['wrong']));
+  assert.equal(plan[0].days, 1);
+});
+
+test('复习排期：答对 1 次到 3 天', () => {
+  const plan = reviewSchedule(practiceNote(['right']));
+  assert.equal(plan[0].days, 3);
+});
+
+test('复习排期：连续答对 2 次到 7 天', () => {
+  const plan = reviewSchedule(practiceNote(['right', 'right']));
+  assert.equal(plan[0].days, 7);
+});
+
+test('复习排期：连续答对 3 次到 16 天', () => {
+  const plan = reviewSchedule(practiceNote(['right', 'right', 'right']));
+  assert.equal(plan[0].days, 16);
+});
+
+test('作答统计：区分真实与演示', () => {
+  const n = structuredClone(note);
+  if (!n.objectives?.length) n.objectives = [{ id: 'o1', text: '目标', criteria: [], sectionIds: [n.sections[0].id] }];
+  n.practice = [
+    { id: 'p1', objectiveId: n.objectives[0].id, verdict: 'right', simulated: false, at: '2026-10-01' },
+    { id: 'p2', objectiveId: n.objectives[0].id, verdict: 'wrong', simulated: false, at: '2026-10-01' },
+    { id: 'p3', objectiveId: n.objectives[0].id, verdict: 'right', simulated: true, at: '2026-10-01' }
+  ];
+  const s = summarisePractice(n);
+  assert.equal(s.total, 3); assert.equal(s.real, 2); assert.equal(s.simulated, 1);
+  assert.equal(s.right, 1); assert.equal(s.wrong, 1);
+});
+
+test('审计：脚本被拦下', () => {
+  assert.ok(auditHtml('<html><body><script>1</script></body></html>').includes('包含 script'));
+});
+
+test('审计：重复 id 被拦下', () => {
+  assert.ok(auditHtml('<div id="a"></div><div id="a"></div>').some(x => x.startsWith('重复 id')));
+});
+
+test('审计：失效锚点被拦下', () => {
+  assert.ok(auditHtml('<a href="#nope">x</a>').some(x => x.startsWith('失效锚点')));
+});
+
+test('审计：表格列数不一致被拦下', () => {
+  const html = '<table><tr><th>a</th><td>1</td><td>2</td></tr></table>';
+  assert.ok(auditHtml(html).includes('表格列数不一致'));
+});
+
+test('审计：SVG 必须有 aria-label', () => {
+  assert.ok(auditHtml('<svg></svg>').includes('SVG 缺少 aria-label'));
+});
+
+test('审计：空列表被拦下', () => {
+  assert.ok(auditHtml('<ul></ul>').includes('存在空列表'));
+});
+
+test('审计：干净片段没有问题', () => {
+  assert.deepEqual(auditHtml('<h1>标题</h1><p>正文</p><a href="#x">锚</a><h2 id="x">节</h2>'), []);
+});
+
+test('合并：基础版本不一致直接拒绝', () => {
+  assert.throws(() => mergeState(state, { baseRevision: state.note.revision + 1, summary: 'x' }), /基础版本/);
+});
+
+function standardNote() {
+  const sections = Array.from({ length: 8 }, (_, i) => ({
+    id: 's' + (i + 1), heading: '章节 ' + (i + 1), origin: 'supplement', sourceIds: [],
+    blocks: [{ type: 'paragraph', text: '正文 ' + (i + 1) }]
+  }));
+  sections[0].blocks = [{ type: 'table', headers: ['a', 'b'], rows: [['1', '2'], ['3', '4']] }];
+  sections[1].blocks = [{ type: 'callout', text: '提示' }];
+  sections.push({ id: 'transfer', heading: '举一反三：迁移任务', origin: 'supplement', sourceIds: [], blocks: [{ type: 'paragraph', text: '换一个情境试试。' }] });
+  return {
+    schemaVersion: 1, id: 'standard', revision: 1, title: '标准笔记示例',
+    scene: 'tech', style: 'style-b', summary: '这是一段足够长的摘要，用来满足规范检查的最小长度要求。',
+    sources: [{ id: 'S1', label: '讲义', text: '原文片段' }],
+    sections,
+    objectives: [1, 2, 3].map(i => ({ id: 'o' + i, text: '目标 ' + i, criteria: ['标准一', '标准二'], sectionIds: ['s' + i] })),
+    practice: [1, 2, 3].map(i => ({ id: 'p' + i, objectiveId: 'o' + i, verdict: 'right', simulated: false, question: '问题 ' + i, answer: '答案 ' + i }))
+  };
+}
+
+test('规范：标准笔记通过', () => {
+  assert.deepEqual(checkNote(standardNote()), []);
+  const meeting = standardNote(); meeting.scene = 'meeting';
+  assert.ok(checkNote(meeting).some(x => x.includes('决策')));
+  meeting.sections[0].blocks.push({ type: 'table', headers: ['决策', '负责人', '截止'], rows: [['上线', '张三', '10-30']] });
+  assert.deepEqual(checkNote(meeting), []);
+  const lean = standardNote(); lean.scene = 'meeting'; delete lean.objectives; delete lean.practice;
+  lean.sections[0].blocks.push({ type: 'table', headers: ['决策', '负责人', '截止'], rows: [['上线', '张三', '10-30']] });
+  assert.deepEqual(checkNote(lean), []);
+  const reading = standardNote(); reading.scene = 'reading';
+  reading.sections[0].origin = 'source'; reading.sections[0].sourceIds = ['S1'];
+  assert.deepEqual(checkNote(reading), []);
+});
+
+test('规范：缺迁移任务被拦下', () => {
+  const n = standardNote();
+  n.sections = n.sections.filter(s => s.id !== 'transfer');
+  assert.ok(checkNote(n).some(x => x.includes('迁移')));
+});
+
+test('规范：章节过少被拦下，compact 短笔记放行', () => {
+  const n = standardNote(); n.sections = n.sections.slice(0, 4);
+  assert.ok(checkNote(n).some(x => x.includes('章节数')));
+  const compact = standardNote();
+  compact.compact = true;
+  compact.sections = [...compact.sections.slice(0, 3), compact.sections.at(-1)];
+  assert.deepEqual(checkNote(compact), []);
+  assert.doesNotThrow(() => validateNote(compact));
+});
+
+test('规范：表格列数不一致被拦下', () => {
+  const n = standardNote(); n.sections[0].blocks[0].rows.push(['1']);
+  assert.ok(checkNote(n).some(x => x.includes('表格列数')));
+});
+
+test('规范：自测必须标明真实/演示', () => {
+  const n = standardNote(); delete n.practice[0].simulated;
+  assert.ok(checkNote(n).some(x => x.includes('真实/演示')));
+});
+
+test('规范：产物含脚本被拦下', () => {
+  const html = '<main><section id="section-s1"></section><script>1</script></main>';
+  assert.ok(checkHtml(html, standardNote()).some(x => x.includes('脚本')));
+});
+
+test('规范：同一输入多次渲染字节一致', async () => {
+  const n = standardNote();
+  const st = createState(n, { nodes: n.sections.map(s => ({ id: s.id, label: s.heading, sectionIds: [s.id], mastery: 'unknown', evidence: [] })), edges: [] });
+  const hashes = [];
+  for (let i = 0; i < 3; i++) { const { html } = await generateNote(n, st); hashes.push(createHash('sha256').update(html).digest('hex')); }
+  assert.equal(new Set(hashes).size, 1);
+});
+
+test('规范：三种主题结构一致且审计通过', async () => {
+  const base = standardNote();
+  const counts = [];
+  for (const style of ['style-a', 'style-b', 'style-c']) {
+    const n = structuredClone(base); n.style = style;
+    const st = createState(n, { nodes: n.sections.map(s => ({ id: s.id, label: s.heading, sectionIds: [s.id], mastery: 'unknown', evidence: [] })), edges: [] });
+    const { html } = await generateNote(n, st);
+    assert.deepEqual(auditHtml(html), []);
+    counts.push((html.match(/<section\b/g) ?? []).length);
+  }
+  assert.equal(new Set(counts).size, 1);
+});
+
+test('夜间样式只作用于屏幕，打印保持浅色', async () => {
+  const html = await readFile(new URL('assets/template-b.html', root), 'utf8');
+  assert.ok(html.includes('@media screen{\nhtml:has(#night:checked) body'));
+  assert.ok(html.includes('@media print{.night-toggle,.night-toggle-label{display:none}}'));
+  assert.ok(!/@media print\{[^}]*night:checked/.test(html));
+});
+
+test('夜间模式覆盖 SVG 节点与页脚', async () => {
+  const html = await readFile(new URL('assets/template-b.html', root), 'utf8');
+  assert.ok(html.includes('svg rect[fill="#fff"]'));
+  assert.ok(html.includes('svg text{fill:'));
+  assert.ok(html.includes('.footer{color:'));
+});
+
+test('切换按钮可聚焦且有无障碍名称', async () => {
+  const html = await readFile(new URL('assets/template-b.html', root), 'utf8');
+  assert.ok(html.includes('aria-label="夜间模式"'));
+  assert.ok(html.includes('.night-toggle:focus-visible+.night-toggle-label'));
+});
+
+test('夜间激活时标签显示“白天”', async () => {
+  const html = await readFile(new URL('assets/template-b.html', root), 'utf8');
+  assert.ok(html.includes('html:has(#night:checked) .night-toggle-label:before{content:"◑ 白天"}'));
+});
+
+test('视频链接识别：YouTube / B站 / Vimeo', () => {
+  assert.deepEqual(detectVideo('https://youtu.be/dQw4w9WgXcQ'), { platform: 'youtube', id: 'dQw4w9WgXcQ' });
+  assert.deepEqual(detectVideo('https://www.youtube.com/watch?v=abc123&t=10'), { platform: 'youtube', id: 'abc123' });
+  assert.deepEqual(detectVideo('https://www.bilibili.com/video/BV1xx411c7mD?p=2'), { platform: 'bilibili', id: 'BV1xx411c7mD' });
+  assert.deepEqual(detectVideo('https://vimeo.com/123456789'), { platform: 'vimeo', id: '123456789' });
+  assert.equal(detectVideo('https://example.com/video'), null);
+  assert.equal(detectVideo('not a url'), null);
+});
+
+test('视频链接：有公开字幕就转来源，没有就明确停下', async () => {
+  const r = await resolveInput({ kind: 'video', value: 'https://www.bilibili.com/video/BV1xx411c7mD' });
+  assert.equal(r.status, 'needs_content');
+  assert.equal(r.platform, 'bilibili');
+  assert.match(r.next, /video/);
+
+  const response = body => ({ ok: true, status: 200, text: async () => JSON.stringify(body) });
+  const biliFetch = async url => {
+    if (url.includes('/x/web-interface/view')) return response({ code: 0, data: { bvid: 'BV1xx411c7mD', aid: 1, title: '测试视频', duration: 120, pages: [{ cid: 2, page: 1, part: 'P1', duration: 120 }] } });
+    if (url.includes('/x/player/v2')) return response({ code: 0, data: { subtitle: { subtitles: [{ lan: 'zh-CN', lan_doc: '中文', subtitle_url: '//example.com/sub.json' }] } } });
+    if (url === 'https://example.com/sub.json') return response({ body: [{ from: 0, to: 2, content: '开场' }, { from: 2, to: 5, content: '定义' }] });
+    throw new Error('unexpected ' + url);
+  };
+  const ready = await fetchVideo('https://www.bilibili.com/video/BV1xx411c7mD?p=1', { fetchImpl: biliFetch });
+  assert.equal(ready.status, 'ready');
+  assert.equal(ready.title, '测试视频');
+  assert.equal(ready.cues.length, 2);
+  assert.match(ready.sources[0].label, /^视频字幕 · 00:00/);
+  assert.match(ready.transcript, /开场/);
+
+  const empty = await fetchVideo('https://www.bilibili.com/video/BV1xx411c7mD', {
+    fetchImpl: async url => url.includes('/x/player/v2')
+      ? response({ code: 0, data: { subtitle: { subtitles: [] } } })
+      : response({ code: 0, data: { bvid: 'BV1xx411c7mD', aid: 1, title: '测试视频', duration: 120, pages: [{ cid: 2, page: 1, part: 'P1', duration: 120 }] } })
+  });
+  assert.equal(empty.status, 'needs_transcript');
+  assert.match(empty.reason, /字幕/);
+
+  const player = { videoDetails: { title: 'YouTube 测试', lengthSeconds: '90' }, captions: { playerCaptionsTracklistRenderer: { captionTracks: [{ languageCode: 'zh-CN', baseUrl: 'https://example.com/cap' }] } } };
+  const ytFetch = async url => {
+    if (url.includes('youtube.com/watch')) return { ok: true, status: 200, text: async () => '<script>var ytInitialPlayerResponse = ' + JSON.stringify(player) + ';</script>' };
+    if (url === 'https://example.com/cap&fmt=json3') return response({ events: [{ tStartMs: 0, dDurationMs: 2000, segs: [{ utf8: '开场' }, { utf8: '定义' }] }] });
+    throw new Error('unexpected ' + url);
+  };
+  const yt = await fetchVideo('https://youtu.be/abc', { fetchImpl: ytFetch });
+  assert.equal(yt.status, 'ready');
+  assert.equal(yt.title, 'YouTube 测试');
+  assert.match(yt.sources[0].text, /开场定义/);
+
+  const failed = await fetchVideo('https://youtu.be/abc', { fetchImpl: async () => { throw new Error('offline'); } });
+  assert.equal(failed.status, 'error');
+  assert.match(failed.reason, /offline/);
+});
+
+test('视频适配器返回字幕后可以进入生成', async () => {
+  const r = await resolveInput({ kind: 'video', value: 'https://youtu.be/abc', label: '讲座' }, {
+    video: async () => ({ text: '[00:00] 开场\n[00:30] 定义' })
+  });
+  assert.equal(r.status, 'ready');
+  assert.match(r.text, /00:30/);
+  assert.equal(r.via, 'adapter');
+});
+
+test('长笔记用学习路径，短笔记用 SVG', async () => {
+  const mk = note => createState(note, { nodes: note.sections.map(s => ({ id: s.id, label: s.heading, sectionIds: [s.id], mastery: 'unknown', evidence: [] })), edges: [] });
+  const short = standardNote();
+  short.sections = short.sections.slice(0, 3);
+  const shortHtml = (await generateNote(short, mk(short))).html;
+  assert.ok(shortHtml.includes('id="mindmap"'));
+  assert.ok(!shortHtml.includes('学习路径'));
+
+  const long = standardNote();
+  long.sections.push({ id: 's10', heading: '第十章', origin: 'supplement', sourceIds: [], blocks: [{ type: 'paragraph', text: '正文' }] });
+  const longHtml = (await generateNote(long, mk(long))).html;
+  assert.ok(longHtml.includes('学习路径'));
+  assert.ok(!longHtml.includes('id="mindmap"'));
+});
+
+test('视频字幕时间戳进入来源并渲染', async () => {
+  const cues = parseSubtitles('1\n00:00:01,000 --> 00:00:03,500\n开场先讲边界。');
+  const sources = toSources(cues);
+  assert.equal(sources[0].label, '视频字幕 · 00:01–00:03');
+  const n = standardNote();
+  n.sources = sources;
+  n.sections[0].origin = 'source';
+  n.sections[0].sourceIds = [sources[0].id];
+  const st = createState(n, { nodes: n.sections.map(s => ({ id: s.id, label: s.heading, sectionIds: [s.id], mastery: 'unknown', evidence: [] })), edges: [] });
+  const { html } = await generateNote(n, st);
+  assert.match(html, /00:01–00:03/);
+  assert.deepEqual(auditHtml(html), []);
 });

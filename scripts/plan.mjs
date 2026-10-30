@@ -1,3 +1,4 @@
+// 计划入口：node scripts/plan.mjs state.json plan.html --days 7；依赖 ../cli 与 ../src。
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { runPlan } from '../cli/note.mjs';

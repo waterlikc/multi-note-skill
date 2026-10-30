@@ -8,7 +8,7 @@
  "history":[{"revision":1,"summary":"首次整理"}]}
 ```
 
-完整可运行示例见 `examples/math.state.json`。node.mastery 仅用 unknown / learning / mastered / review；后面三种必须附实际答题或用户自评的 evidence 字符串，不捏造百分比。关系 `{from,to,type,basis}`，type 为 prerequisite / related / extends / contains。prerequisite 的方向是“前置概念 → 目标概念”；basis 记录材料或解释依据。边不能悬空；前置关系出现环时先修正，不伪造学习顺序。复杂路径是候选建议，不承诺个性化教学效果。
+示例见 `examples/math.state.json`。node.mastery 只用 unknown / learning / mastered / review；后三种必须附实际答题或用户自评的 evidence，不捏造百分比。关系 `{from,to,type,basis}`，type 为 prerequisite / related / extends / contains；prerequisite 方向是“前置 → 目标”，basis 记录依据。边不能悬空；前置成环先修正，不伪造学习顺序。路径只是候选建议，不承诺个性化效果。
 
 ## 合并规则
 1. 优先读完整旧状态；只有旧笔记就从内容恢复并标明图谱/历史未知；两者都没有时请用户提供，不得假称更新成功。
@@ -26,8 +26,8 @@ HTML 用 `<pre id="note-state">` 存转义后的 JSON；复制显示文字即可
 history 只是索引，不含全文；回退要拿到目标快照并作为新 revision 输出。状态过大时按主题导出，摘要里列出分卷与省略范围；不要静默删除学习证据。
 
 
-## 演示作答与复习节奏
+## 演示作答与复习
 
-- 作答记录在 practice；simulated:true 只用于演示，不计入掌握，也不推进复习。
-- 只有演示作答时，状态校验拒绝任何非 unknown 的 mastery。
-- 间隔：有答错 → 次日；答对 1 / 2 / 3 次以上 → 3 / 7 / 16 天。只是排期建议，不代表学习效果。
+- 作答在 practice；simulated:true 只演示，不计掌握，也不推进复习。
+- 只有演示作答时，状态校验拒绝非 unknown 的 mastery。
+- 间隔：答错→次日；答对 1/2/3 次以上→3/7/16 天。只是排期建议，不代表效果。

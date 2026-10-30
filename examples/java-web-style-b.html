@@ -57,7 +57,8 @@ nav a.num{display:inline-flex;align-items:center;justify-content:center;width:24
 .night-toggle{position:fixed;left:16px;bottom:16px;width:1px;height:1px;opacity:0;pointer-events:none}
 .night-toggle-label{position:fixed;left:16px;bottom:16px;z-index:9;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font:600 12px/1 "Segoe UI","Microsoft YaHei",sans-serif;color:#2c4455;background:#fff;border:1px solid #c9d8e0;border-radius:999px;box-shadow:0 2px 6px rgba(18,41,61,.12)}
 .night-toggle-label:before{content:"◐ 夜间"}
-.night-toggle:checked + .night-toggle-label:before{content:"◑ 白天"}
+.night-toggle:focus-visible+.night-toggle-label{outline:2px solid var(--accent)}
+html:has(#night:checked) .night-toggle-label:before{content:"◑ 白天"}
 body:has(#night:checked) .night-toggle-label{color:#e8e1d6;background:#1d1915;border-color:#3a332c}
 @media print{.night-toggle,.night-toggle-label{display:none}}
 
@@ -68,6 +69,7 @@ body{padding-top:48px}
 .topbar .night-toggle-label{position:static;margin-left:auto;box-shadow:none;background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
 .topbar .night-toggle-label:before{color:inherit}
 @media print{.topbar{display:none}body{padding-top:0}}
+@media screen{
 html:has(#night:checked) body{background:#0a141c;color:#cfe2ea;background-image:none}
 html:has(#night:checked) main{background:#0f1e2a;border-color:#24404f;box-shadow:none}
 html:has(#night:checked) header{border-color:#24404f}
@@ -86,8 +88,15 @@ html:has(#night:checked) .topbar{background:#070d12}
 html:has(#night:checked) .pager a{background:#122836;color:#cfe2ea;border-color:#24404f}
 
 html:has(#night:checked) section[data-no]:before{color:#5fc2cf;border-color:#5fc2cf}
+html:has(#night:checked){color-scheme:dark}
+html:has(#night:checked) .footer{color:#8fb0bf}
+html:has(#night:checked) .practice tr.wrong td{background:#3a2420}
+html:has(#night:checked) svg rect[fill="#fff"]{fill:#122836;stroke:#24404f}
+html:has(#night:checked) svg text{fill:#cfe2ea}
+html:has(#night:checked) svg path{stroke:#3f5b6b}
+}
 </style></head>
-<body><input type="checkbox" id="night" class="night-toggle"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">技术学习</p><h1>Spring Boot 3 订单接口：从 Controller 到 SQL</h1><p class="lead">一次请求穿过三层：Controller 收参数、Service 管事务、Mapper 绑 SQL；异常在边界统一收口。</p></header><nav aria-label="章节导航"><a href="#section-api">分层：一次请求经过谁</a><a href="#section-controller">Controller：只接参数、只返结果</a><a href="#section-validation">DTO 校验：把坏请求挡在门外</a><a href="#section-service">Service：事务边界画在哪</a><a href="#section-mapper">Mapper：SQL 与参数绑定</a><a href="#section-debug">排错顺序：日志 → 参数 → SQL</a><a href="#section-quiz">自测：三个必答</a></nav><section id="section-api" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>分层：一次请求经过谁</h2><p>接口层只负责协议转换，业务规则留在 Service，SQL 只出现在 Mapper。三层各自可测，改动才不会互相牵连。</p>
+<body><input type="checkbox" id="night" class="night-toggle" aria-label="夜间模式"><div class="topbar"><span class="tb-title">学习笔记</span><span class="tb-meta">v1</span><label for="night" class="night-toggle-label" title="切换夜间/白天"></label></div><main id="top"><header><p class="eyebrow">技术学习</p><h1>Spring Boot 3 订单接口：从 Controller 到 SQL</h1><p class="lead">一次请求穿过三层：Controller 收参数、Service 管事务、Mapper 绑 SQL；异常在边界统一收口。</p></header><nav aria-label="章节导航"><a href="#section-api">分层：一次请求经过谁</a><a href="#section-controller">Controller：只接参数、只返结果</a><a href="#section-validation">DTO 校验：把坏请求挡在门外</a><a href="#section-service">Service：事务边界画在哪</a><a href="#section-mapper">Mapper：SQL 与参数绑定</a><a href="#section-debug">排错顺序：日志 → 参数 → SQL</a><a href="#section-quiz">自测：三个必答</a></nav><section id="section-api" data-no="01"><p class="eyebrow">来源材料</p><h2><span class="sec-no">01</span>分层：一次请求经过谁</h2><p>接口层只负责协议转换，业务规则留在 Service，SQL 只出现在 Mapper。三层各自可测，改动才不会互相牵连。</p>
 <table><thead><tr><th scope="col">层</th><th scope="col">职责</th><th scope="col">关键注解</th></tr></thead><tbody><tr><td>Controller</td><td>接参数、校验、返回视图</td><td>@RestController · @Valid</td></tr><tr><td>Service</td><td>业务规则、事务边界</td><td>@Service · @Transactional</td></tr><tr><td>Mapper</td><td>SQL 与结果映射</td><td>@Mapper · @Select</td></tr></tbody></table><p class="source">依据：<a href="#source-S1">[S1]</a></p><p class="next-link"><a href="#section-controller">下一节：Controller：只接参数、只返结果 →</a></p></section>
 <section id="section-controller" data-no="02"><p class="eyebrow">来源材料</p><h2><span class="sec-no">02</span>Controller：只接参数、只返结果</h2><figure class="code"><figcaption>Java · OrderController</figcaption><pre><code>@RestController
 @RequestMapping(&quot;/api/orders&quot;)
