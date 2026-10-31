@@ -19,7 +19,7 @@
 
 它会依次跑：
 
-1. `node tests/selfcheck.mjs`（14 项自检）
+1. `node tests/selfcheck.mjs`（22 项自检）
 2. `node --test tests/runtime.test.mjs tests/animation.test.mjs`（105 项）
 3. `node cli/note.mjs audit .`
 

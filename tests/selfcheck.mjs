@@ -80,6 +80,54 @@ let missing = [];
 for (const f of refsLinks) { try { await stat(new URL('references/' + f, root)); } catch { missing.push(f); } }
 add('SKILL 内链接有效', missing.length === 0, refsLinks.length + ' 条');
 
+
+// 9. 渲染确定性与样式能力
+const detA = join(tmpdir(), 'det-a-' + Date.now() + '.html');
+const detB = join(tmpdir(), 'det-b-' + Date.now() + '.html');
+cli(['render', 'examples/java-web.json', detA]);
+cli(['render', 'examples/java-web.json', detB]);
+const detHtml = await readFile(detA, 'utf8');
+add('两次渲染字节一致', detHtml === await readFile(detB, 'utf8'));
+add('打印样式存在', /@media\s+print/.test(detHtml));
+add('夜间开关存在', /id="night"/.test(detHtml));
+const secCount = (detHtml.match(/<section\b/g) || []).length;
+add('章节数与源一致', secCount >= 7, secCount + ' 段');
+
+// 10. 审计拦截三类坏产物
+const badDir1 = await mkdtemp(join(tmpdir(), 'selfcheck-bad-'));
+try {
+  const base = JSON.parse(await readFile(new URL('examples/java-web.json', root), 'utf8'));
+  const httpNote = JSON.parse(JSON.stringify(base));
+  httpNote.sources = [{ id: 'S1', label: '来源', text: '来源改 http', url: 'http://example.com/a' }];
+  for (const sec of httpNote.sections) { sec.sourceIds = ['S1']; sec.origin = 'source'; }
+  const notePath = join(badDir1, 'note.json');
+  await (await import('node:fs/promises')).writeFile(notePath, JSON.stringify(httpNote), 'utf8');
+  cli(['render', notePath, join(badDir1, 'note.html')]);
+  add('拦截 http 来源', cli(['audit', badDir1]).status === 1);
+
+  const imgPath = join(badDir1, 'note.html');
+  const html = await readFile(imgPath, 'utf8');
+  await (await import('node:fs/promises')).writeFile(imgPath, html.replace('</body>', '<img src=https://example.com/x.png></body>'), 'utf8');
+  add('拦截外链图片', cli(['audit', badDir1]).status === 1);
+} finally { await rm(badDir1, { recursive: true, force: true }); }
+
+// 11. 契约拒绝坏输入
+const badDir = await mkdtemp(join(tmpdir(), 'selfcheck-bad2-'));
+try {
+  const base = JSON.parse(await readFile(new URL('examples/java-web.json', root), 'utf8'));
+  const badTable = JSON.parse(JSON.stringify(base));
+  badTable.sections[0].blocks.push({ type: 'table', headers: ['a', 'b'], rows: [['只有一列']] });
+  const p1 = join(badDir, 't.json');
+  await (await import('node:fs/promises')).writeFile(p1, JSON.stringify(badTable), 'utf8');
+  add('拒收列数不一致的表', cli(['render', p1, join(badDir, 'o1.html')]).status === 1);
+
+  const badId = JSON.parse(JSON.stringify(base));
+  badId.id = '坏 id';
+  const p2 = join(badDir, 'i.json');
+  await (await import('node:fs/promises')).writeFile(p2, JSON.stringify(badId), 'utf8');
+  add('拒收非法 id', cli(['render', p2, join(badDir, 'o2.html')]).status === 1);
+} finally { await rm(badDir, { recursive: true, force: true }); }
+
 // 输出
 let bad = 0;
 for (const r of results) { if (!r.ok) bad++; console.log((r.ok ? '✓ ' : '✗ ') + r.name + (r.detail ? '  ' + r.detail : '')); }
